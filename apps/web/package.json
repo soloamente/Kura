@@ -1,0 +1,42 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start",
+    "tauri": "tauri",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
+  },
+  "dependencies": {
+    "@Kura/auth": "workspace:*",
+    "@Kura/env": "workspace:*",
+    "@Kura/ui": "workspace:*",
+    "@ai-sdk/react": "^3.0.3",
+    "@tanstack/react-form": "^1.28.0",
+    "ai": "catalog:",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "lucide-react": "catalog:",
+    "next": "^16.1.1",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "streamdown": "^1.6.10",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@Kura/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tauri-apps/cli": "^2.4.0",
+    "@types/node": "^20",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "^5"
+  }
+}
