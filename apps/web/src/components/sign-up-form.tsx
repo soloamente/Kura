@@ -1,9 +1,9 @@
 import { Button } from "@Kura/ui/components/button";
 import { Input } from "@Kura/ui/components/input";
 import { Label } from "@Kura/ui/components/label";
+import { useToast } from "@Kura/ui/components/toast";
 import { useForm } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import z from "zod";
 
 import { authClient } from "@/lib/auth-client";
@@ -17,7 +17,7 @@ export default function SignUpForm({
 }) {
 	const router = useRouter();
 	const { isPending } = authClient.useSession();
-
+	const { toast } = useToast();
 	const form = useForm({
 		defaultValues: {
 			email: "",
@@ -34,10 +34,10 @@ export default function SignUpForm({
 				{
 					onSuccess: () => {
 						router.push("/dashboard");
-						toast.success("Sign up successful");
+						toast("Sign up successful", "success");
 					},
 					onError: (error) => {
-						toast.error(error.error.message || error.error.statusText);
+						toast(error.error.message || error.error.statusText, "error");
 					},
 				},
 			);

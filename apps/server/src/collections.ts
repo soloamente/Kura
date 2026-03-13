@@ -3,6 +3,7 @@ import { bookmark, collection } from "@Kura/db/schema/bookmarks";
 import { and, eq, gte, lt, lte } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { authMiddleware } from "./middleware/auth";
+import { getActiveUser } from "./middleware/auth-guards";
 
 export const collectionsRouter = new Elysia({ prefix: "/collections" })
 	.use(authMiddleware)
@@ -53,16 +54,14 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 	.post(
 		"/",
 		async ({ body, user, set }) => {
-			if (!user) {
-				set.status = 401;
-				return { message: "Unauthorized" };
-			}
+			const activeUser = getActiveUser(user, set);
+			if ("message" in activeUser) return activeUser;
 
 			const [newCollection] = await db
 				.insert(collection)
 				.values({
 					id: crypto.randomUUID(),
-					userId: user.id,
+					userId: activeUser.id,
 					name: body.name,
 				})
 				.returning();
@@ -72,15 +71,53 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 		{ body: t.Object({ name: t.String() }) },
 	)
 
+	// ─── PATCH update (name + color) ─────────────────────────────────────────
+	.patch(
+		"/:id",
+		async ({ params, body, user, set }) => {
+			const activeUser = getActiveUser(user, set);
+			if ("message" in activeUser) return activeUser;
+
+			const [updated] = await db
+				.update(collection)
+				.set({
+					...(body.name !== undefined && { name: body.name }),
+					...(body.color !== undefined && { color: body.color }),
+					updatedAt: new Date(),
+				})
+				.where(
+					and(
+						eq(collection.id, params.id),
+						eq(collection.userId, activeUser.id),
+					),
+				)
+				.returning();
+
+			if (!updated) {
+				set.status = 404;
+				return { message: "Not found" };
+			}
+
+			return updated;
+		},
+		{
+			body: t.Object({
+				name: t.Optional(t.String()),
+				color: t.Optional(t.Nullable(t.String())),
+			}),
+		},
+	)
+
 	// ─── PATCH trash collection + its bookmarks (soft delete) ─────────────────
 	.patch("/:id/trash", async ({ params, user, set }) => {
-		if (!user) {
-			set.status = 401;
-			return { message: "Unauthorized" };
-		}
+		const activeUser = getActiveUser(user, set);
+		if ("message" in activeUser) return activeUser;
 
 		const existing = await db.query.collection.findFirst({
-			where: and(eq(collection.id, params.id), eq(collection.userId, user.id)),
+			where: and(
+				eq(collection.id, params.id),
+				eq(collection.userId, activeUser.id),
+			),
 		});
 		if (!existing) {
 			set.status = 404;
@@ -93,7 +130,9 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 		const [updated] = await db
 			.update(collection)
 			.set({ isTrashed: true, trashedAt: now, updatedAt: now })
-			.where(and(eq(collection.id, params.id), eq(collection.userId, user.id)))
+			.where(
+				and(eq(collection.id, params.id), eq(collection.userId, activeUser.id)),
+			)
 			.returning();
 
 		// soft-delete all its non-trashed bookmarks
@@ -103,7 +142,7 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			.where(
 				and(
 					eq(bookmark.collectionId, params.id),
-					eq(bookmark.userId, user.id),
+					eq(bookmark.userId, activeUser.id),
 					eq(bookmark.isTrashed, false),
 				),
 			);
@@ -113,13 +152,14 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 
 	// ─── PATCH restore collection + its bookmarks ─────────────────────────────
 	.patch("/:id/restore", async ({ params, user, set }) => {
-		if (!user) {
-			set.status = 401;
-			return { message: "Unauthorized" };
-		}
+		const activeUser = getActiveUser(user, set);
+		if ("message" in activeUser) return activeUser;
 
 		const existing = await db.query.collection.findFirst({
-			where: and(eq(collection.id, params.id), eq(collection.userId, user.id)),
+			where: and(
+				eq(collection.id, params.id),
+				eq(collection.userId, activeUser.id),
+			),
 		});
 		if (!existing) {
 			set.status = 404;
@@ -136,7 +176,9 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 		const [restored] = await db
 			.update(collection)
 			.set({ isTrashed: false, trashedAt: null, updatedAt: now })
-			.where(and(eq(collection.id, params.id), eq(collection.userId, user.id)))
+			.where(
+				and(eq(collection.id, params.id), eq(collection.userId, activeUser.id)),
+			)
 			.returning();
 
 		// restore only bookmarks that were trashed at the same time as the collection
@@ -150,7 +192,7 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			.where(
 				and(
 					eq(bookmark.collectionId, params.id),
-					eq(bookmark.userId, user.id),
+					eq(bookmark.userId, activeUser.id),
 					eq(bookmark.isTrashed, true),
 					gte(bookmark.trashedAt, windowStart),
 					lte(bookmark.trashedAt, windowEnd),
@@ -162,21 +204,24 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 
 	// ─── DELETE hard delete collection (from trash, permanent) ──────────────
 	.delete("/:id", async ({ params, user, set }) => {
-		if (!user) {
-			set.status = 401;
-			return { message: "Unauthorized" };
-		}
+		const activeUser = getActiveUser(user, set);
+		if ("message" in activeUser) return activeUser;
 
 		// also hard-delete all its trashed bookmarks
 		await db
 			.delete(bookmark)
 			.where(
-				and(eq(bookmark.collectionId, params.id), eq(bookmark.userId, user.id)),
+				and(
+					eq(bookmark.collectionId, params.id),
+					eq(bookmark.userId, activeUser.id),
+				),
 			);
 
 		const [deleted] = await db
 			.delete(collection)
-			.where(and(eq(collection.id, params.id), eq(collection.userId, user.id)))
+			.where(
+				and(eq(collection.id, params.id), eq(collection.userId, activeUser.id)),
+			)
 			.returning();
 
 		if (!deleted) {
@@ -188,13 +233,14 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 
 	// ─── DELETE collection only — keep bookmarks (detach) ────────────────────
 	.delete("/:id/keep-bookmarks", async ({ params, user, set }) => {
-		if (!user) {
-			set.status = 401;
-			return { message: "Unauthorized" };
-		}
+		const activeUser = getActiveUser(user, set);
+		if ("message" in activeUser) return activeUser;
 
 		const existing = await db.query.collection.findFirst({
-			where: and(eq(collection.id, params.id), eq(collection.userId, user.id)),
+			where: and(
+				eq(collection.id, params.id),
+				eq(collection.userId, activeUser.id),
+			),
 		});
 		if (!existing) {
 			set.status = 404;
@@ -206,23 +252,62 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			.update(bookmark)
 			.set({ collectionId: null, updatedAt: new Date() })
 			.where(
-				and(eq(bookmark.collectionId, params.id), eq(bookmark.userId, user.id)),
+				and(
+					eq(bookmark.collectionId, params.id),
+					eq(bookmark.userId, activeUser.id),
+				),
 			);
 
 		// hard delete — user explicitly chose to keep bookmarks, no recovery needed
 		await db
 			.delete(collection)
-			.where(and(eq(collection.id, params.id), eq(collection.userId, user.id)));
+			.where(
+				and(eq(collection.id, params.id), eq(collection.userId, activeUser.id)),
+			);
 
 		return { success: true };
 	})
 
+	// ─── PATCH update visibility ─────────────────────────────────────────────
+	.patch(
+		"/:id/visibility",
+		async ({ params, body, user, set }) => {
+			const activeUser = getActiveUser(user, set);
+			if ("message" in activeUser) return activeUser;
+
+			const [updated] = await db
+				.update(collection)
+				.set({ visibility: body.visibility, updatedAt: new Date() })
+				.where(
+					and(
+						eq(collection.id, params.id),
+						eq(collection.userId, activeUser.id),
+					),
+				)
+				.returning();
+
+			if (!updated) {
+				set.status = 404;
+				return { message: "Not found" };
+			}
+
+			return updated;
+		},
+		{
+			body: t.Object({
+				visibility: t.Union([
+					t.Literal("private"),
+					t.Literal("friends"),
+					t.Literal("public"),
+				]),
+			}),
+		},
+	)
+
 	// ─── DELETE purge old trashed collections (7 days) ───────────────────────
 	.delete("/trash/purge", async ({ user, set }) => {
-		if (!user) {
-			set.status = 401;
-			return { message: "Unauthorized" };
-		}
+		const activeUser = getActiveUser(user, set);
+		if ("message" in activeUser) return activeUser;
 
 		const sevenDaysAgo = new Date();
 		sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -231,7 +316,7 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			.delete(collection)
 			.where(
 				and(
-					eq(collection.userId, user.id),
+					eq(collection.userId, activeUser.id),
 					eq(collection.isTrashed, true),
 					lt(collection.trashedAt, sevenDaysAgo),
 				),

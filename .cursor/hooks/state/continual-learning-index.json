@@ -1,26 +1,117 @@
 {
-  "version": 1,
-  "transcripts": {
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\2acd3373-a96e-4fb4-be8b-a00eb22b32bb\\2acd3373-a96e-4fb4-be8b-a00eb22b32bb.jsonl": { "mtimeMs": 1773064767021, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\36267594-2d03-4019-8ec8-ea46440584e7\\36267594-2d03-4019-8ec8-ea46440584e7.jsonl": { "mtimeMs": 1773076279395, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\389fde95-7b6a-4f47-a9b9-4157525360ed\\389fde95-7b6a-4f47-a9b9-4157525360ed.jsonl": { "mtimeMs": 1773017159688, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\4a4b35b1-b185-4d0f-838b-8e4e8ac47b6c\\4a4b35b1-b185-4d0f-838b-8e4e8ac47b6c.jsonl": { "mtimeMs": 1773069632423, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\4aac7e01-ba9d-43ad-83cc-8c3ddbd94664\\4aac7e01-ba9d-43ad-83cc-8c3ddbd94664.jsonl": { "mtimeMs": 1773091672213, "lastProcessedAt": "2026-03-10T00:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\4e7c3f49-d65b-4a05-a581-9e5f0adc2b8a\\4e7c3f49-d65b-4a05-a581-9e5f0adc2b8a.jsonl": { "mtimeMs": 1772914954309, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\512acfc2-a922-4615-9acf-a3d1b4591868\\512acfc2-a922-4615-9acf-a3d1b4591868.jsonl": { "mtimeMs": 1773003623378, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\5e7fe3fb-cd05-416d-9ef4-56511273ba57\\5e7fe3fb-cd05-416d-9ef4-56511273ba57.jsonl": { "mtimeMs": 1773022635144, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\618b3a9b-7c9a-4f73-853a-c73d13789aa4\\618b3a9b-7c9a-4f73-853a-c73d13789aa4.jsonl": { "mtimeMs": 1773071255406, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\6300a853-5929-44f7-a6ca-895b5a35e412\\6300a853-5929-44f7-a6ca-895b5a35e412.jsonl": { "mtimeMs": 1772904020410, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\6a9ceaa6-63d9-4858-b9ad-ccefb2d357b5\\6a9ceaa6-63d9-4858-b9ad-ccefb2d357b5.jsonl": { "mtimeMs": 1773065490601, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\6ab3851b-42d0-4340-a97f-e1fa8d9b7c45\\6ab3851b-42d0-4340-a97f-e1fa8d9b7c45.jsonl": { "mtimeMs": 1773018244030, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\86f1f918-d4e6-42da-b89d-3ac9ae00fc78\\86f1f918-d4e6-42da-b89d-3ac9ae00fc78.jsonl": { "mtimeMs": 1773007537007, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\9292c98a-0c2f-4d9c-8473-7e625cc1dc36\\9292c98a-0c2f-4d9c-8473-7e625cc1dc36.jsonl": { "mtimeMs": 1773067905321, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\a70a4b1d-5340-42ab-bb2f-6d834b0e0ba0\\a70a4b1d-5340-42ab-bb2f-6d834b0e0ba0.jsonl": { "mtimeMs": 1773072810673, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\ac0eb2bc-1db2-4755-b6c2-1cc405e69ebc\\ac0eb2bc-1db2-4755-b6c2-1cc405e69ebc.jsonl": { "mtimeMs": 1772903649787, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\c1615f7c-2c0b-4c11-8aa2-f98d174e7f05\\c1615f7c-2c0b-4c11-8aa2-f98d174e7f05.jsonl": { "mtimeMs": 1773071607448, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\f404c197-92b4-4c64-a459-7e029df8ea73\\f404c197-92b4-4c64-a459-7e029df8ea73.jsonl": { "mtimeMs": 1772884617142, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\f649b11e-a9b7-4ad5-a09a-0eb4f280c4a2\\f649b11e-a9b7-4ad5-a09a-0eb4f280c4a2.jsonl": { "mtimeMs": 1773005055716, "lastProcessedAt": "2025-03-09T12:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\32256f32-ba86-4bc8-95fa-56082b8a21e6\\32256f32-ba86-4bc8-95fa-56082b8a21e6.jsonl": { "mtimeMs": 1773099305877, "lastProcessedAt": "2026-03-10T00:00:00.000Z" },
-    "C:\\Users\\adgv\\.cursor\\projects\\c-Users-adgv-Documents-Projects-Kura\\agent-transcripts\\867d4f04-b8ff-419c-8ca3-5c5a3072b913\\867d4f04-b8ff-419c-8ca3-5c5a3072b913.jsonl": { "mtimeMs": 1773095032163, "lastProcessedAt": "2026-03-10T00:00:00.000Z" }
-  }
+	"version": 1,
+	"transcripts": {
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/08c98b8e-4c49-4678-8cd7-00867e546dc4/08c98b8e-4c49-4678-8cd7-00867e546dc4.jsonl": {
+			"mtimeMs": 1773134723000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/0a111ff8-5219-43bf-a18b-11aaa85a9b61/0a111ff8-5219-43bf-a18b-11aaa85a9b61.jsonl": {
+			"mtimeMs": 1773151057000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/0c619abe-b52d-41ce-b7b9-e23e36c5988d/0c619abe-b52d-41ce-b7b9-e23e36c5988d.jsonl": {
+			"mtimeMs": 1773220594000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/1ca1c681-a5f1-4c76-9bef-70b6ad9991d5/1ca1c681-a5f1-4c76-9bef-70b6ad9991d5.jsonl": {
+			"mtimeMs": 1773246739000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/1ef4d517-1b55-4fa1-9424-4d8e3eee9ced/1ef4d517-1b55-4fa1-9424-4d8e3eee9ced.jsonl": {
+			"mtimeMs": 1773164043000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/2349ff0f-6e22-4a41-8b4e-d79a1f12a7ee/2349ff0f-6e22-4a41-8b4e-d79a1f12a7ee.jsonl": {
+			"mtimeMs": 1773152702000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/2862cea6-2185-4068-8490-6790a9ea4e92/2862cea6-2185-4068-8490-6790a9ea4e92.jsonl": {
+			"mtimeMs": 1773249696000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/2e324074-dc72-4ae5-8197-90a3a020aef4/2e324074-dc72-4ae5-8197-90a3a020aef4.jsonl": {
+			"mtimeMs": 1773221915000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/381012fe-54e0-45ae-836c-04209f42fee8/381012fe-54e0-45ae-836c-04209f42fee8.jsonl": {
+			"mtimeMs": 1773161993000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/3de2db46-f04a-485b-a70e-cbbacda0f83e/3de2db46-f04a-485b-a70e-cbbacda0f83e.jsonl": {
+			"mtimeMs": 1773248213000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/41d8bd7e-c784-4689-be8e-bc3c8c1aba5c/41d8bd7e-c784-4689-be8e-bc3c8c1aba5c.jsonl": {
+			"mtimeMs": 1773223203000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/420c12c8-affa-4b8e-97d9-a84c478d5c98/420c12c8-affa-4b8e-97d9-a84c478d5c98.jsonl": {
+			"mtimeMs": 1773236303000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/47b9d669-8aaf-4740-bf63-efac6950d3ad/47b9d669-8aaf-4740-bf63-efac6950d3ad.jsonl": {
+			"mtimeMs": 1773132661000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/48aa88c7-0b19-4d3f-ae23-d17abab1ee82/48aa88c7-0b19-4d3f-ae23-d17abab1ee82.jsonl": {
+			"mtimeMs": 1773335527000,
+			"lastProcessedAt": "2026-03-14T00:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/c61fc7d3-c35a-4218-b81a-193136710a9c/c61fc7d3-c35a-4218-b81a-193136710a9c.jsonl": {
+			"mtimeMs": 1773444907000,
+			"lastProcessedAt": "2026-03-14T00:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/d1906cb0-d734-409d-8d19-e261b880a7e6/d1906cb0-d734-409d-8d19-e261b880a7e6.jsonl": {
+			"mtimeMs": 1773336978000,
+			"lastProcessedAt": "2026-03-14T00:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/0f6070a0-0a97-46ed-8584-29a4e46c9dfe/0f6070a0-0a97-46ed-8584-29a4e46c9dfe.jsonl": {
+			"mtimeMs": 1773335700000,
+			"lastProcessedAt": "2026-03-14T00:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/9051af13-4c85-4fbb-b55d-46c64bcfdee4/9051af13-4c85-4fbb-b55d-46c64bcfdee4.jsonl": {
+			"mtimeMs": 1773225874000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/996a7765-ed89-4faf-9af7-1fe44a0670ea/996a7765-ed89-4faf-9af7-1fe44a0670ea.jsonl": {
+			"mtimeMs": 1773228774000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/9e0b1f71-818d-49d1-b319-c959aac0d555/9e0b1f71-818d-49d1-b319-c959aac0d555.jsonl": {
+			"mtimeMs": 1773225369000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/a995c62c-d8c9-446a-825f-9d153f75d958/a995c62c-d8c9-446a-825f-9d153f75d958.jsonl": {
+			"mtimeMs": 1773220388000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/b2c1fcca-5c36-4063-bda5-10f8f46841d1/b2c1fcca-5c36-4063-bda5-10f8f46841d1.jsonl": {
+			"mtimeMs": 1773327898000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/c6eb4512-49d8-438b-a2b0-e76f59d167a1/c6eb4512-49d8-438b-a2b0-e76f59d167a1.jsonl": {
+			"mtimeMs": 1773138126000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/cbb4ec3a-ede2-4e22-b4cc-f93c0eb7fcfb/cbb4ec3a-ede2-4e22-b4cc-f93c0eb7fcfb.jsonl": {
+			"mtimeMs": 1773159483000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/cd64cdab-0fd7-4a39-b685-d9defeb12705/cd64cdab-0fd7-4a39-b685-d9defeb12705.jsonl": {
+			"mtimeMs": 1773162255000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/ceb04ae1-6281-43e1-a4c3-b0035820bed8/ceb04ae1-6281-43e1-a4c3-b0035820bed8.jsonl": {
+			"mtimeMs": 1773315875000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/e05b65be-be04-4922-857b-35db959d0cca/e05b65be-be04-4922-857b-35db959d0cca.jsonl": {
+			"mtimeMs": 1773249005000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		},
+		"/home/adgv/.cursor/projects/home-adgv-Projects-Kura/agent-transcripts/e05c015d-380f-4e25-90d9-12218755013f/e05c015d-380f-4e25-90d9-12218755013f.jsonl": {
+			"mtimeMs": 1773322106000,
+			"lastProcessedAt": "2026-03-12T12:00:00.000Z"
+		}
+	}
 }

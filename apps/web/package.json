@@ -20,8 +20,8 @@
 		"ai": "catalog:",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"better-auth": "catalog:",
-		"dotenv": "catalog:",
 		"dialkit": "^1.1.0",
+		"dotenv": "catalog:",
 		"framer-motion": "^11.0.0",
 		"lucide-react": "catalog:",
 		"next": "^16.1.1",
@@ -30,6 +30,7 @@
 		"react-dom": "catalog:",
 		"sonner": "catalog:",
 		"streamdown": "^1.6.10",
+		"torph": "^0.0.9",
 		"zod": "catalog:"
 	},
 	"devDependencies": {

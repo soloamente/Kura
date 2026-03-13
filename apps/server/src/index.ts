@@ -5,8 +5,12 @@ import { google } from "@ai-sdk/google";
 import { cors } from "@elysiajs/cors";
 import { convertToModelMessages, streamText, wrapLanguageModel } from "ai";
 import { Elysia } from "elysia";
-import { collectionsRouter } from "./collections";
+import { adminRouter } from "./admin";
 import { bookmarksRouter } from "./bookmarks";
+import { collectionsRouter } from "./collections";
+import { tagsRouter } from "./tags";
+import { uploadRouter } from "./upload";
+import { usersRouter } from "./users";
 
 const app = new Elysia()
 	.use(
@@ -17,8 +21,12 @@ const app = new Elysia()
 			credentials: true,
 		}),
 	)
+	.use(adminRouter)
+	.use(usersRouter)
+	.use(uploadRouter)
 	.use(bookmarksRouter)
 	.use(collectionsRouter)
+	.use(tagsRouter)
 	.all("/api/auth/*", async (context) => {
 		const { request, status } = context;
 		if (["POST", "GET"].includes(request.method)) {
@@ -27,8 +35,11 @@ const app = new Elysia()
 		return status(405);
 	})
 	.post("/ai", async (context) => {
-		const body = await context.request.json();
-		const uiMessages = body.messages || [];
+		const body: unknown = await context.request.json();
+		const uiMessages =
+			typeof body === "object" && body !== null && "messages" in body
+				? ((body as { messages?: unknown }).messages ?? [])
+				: [];
 		const model = wrapLanguageModel({
 			model: google("gemini-2.5-flash"),
 			middleware: devToolsMiddleware(),

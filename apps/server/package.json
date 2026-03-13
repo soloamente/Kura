@@ -15,8 +15,9 @@
 		"@Kura/env": "workspace:*",
 		"@ai-sdk/devtools": "^0.0.2",
 		"@ai-sdk/google": "^3.0.1",
+		"@aws-sdk/client-s3": "^3.1005.0",
 		"@elysiajs/cors": "^1.4.1",
-		"@trigger.dev/sdk": "4.4.2",
+		"@trigger.dev/sdk": "4.4.3",
 		"ai": "catalog:",
 		"better-auth": "catalog:",
 		"dotenv": "catalog:",
@@ -26,7 +27,7 @@
 	},
 	"devDependencies": {
 		"@Kura/config": "workspace:*",
-		"@trigger.dev/build": "4.4.2",
+		"@trigger.dev/build": "4.4.3",
 		"@types/bun": "catalog:",
 		"tsdown": "^0.16.5",
 		"typescript": "^5"

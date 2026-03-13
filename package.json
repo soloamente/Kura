@@ -25,6 +25,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "turbo dev",
+		"dev:app": "turbo dev --filter=web --filter=server",
 		"build": "turbo build",
 		"check-types": "turbo check-types",
 		"dev:native": "turbo -F native dev",
@@ -45,10 +46,12 @@
 		"dialkit": "^1.1.0",
 		"dotenv": "catalog:",
 		"drizzle-orm": "^0.45.1",
+		"lottie-react": "^2.4.1",
 		"motion": "^12.35.1",
 		"nucleo-micro-bold": "^1.1.1",
 		"nucleo-ui-fill-12": "^1.3.2",
 		"nucleo-ui-fill-18": "^1.3.2",
+		"torph": "^0.0.9",
 		"web-haptics": "^0.0.6",
 		"zod": "catalog:"
 	},

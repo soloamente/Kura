@@ -1,14 +1,20 @@
 "use client";
 
+import { useToast } from "@Kura/ui/components/toast";
 import { ContextMenu } from "@base-ui/react/context-menu";
-import { useCollection } from "@/context/collection-context";
 import { BookmarkList } from "@/components/bookmark-list";
 import { TrashList } from "@/components/trash-list";
+import { useCollection } from "@/context/collection-context";
 import { api } from "@/lib/api";
-import { toast } from "sonner";
+import {
+	contextMenuItemCls,
+	contextMenuPopupCls,
+} from "@/lib/context-menu-styles";
 
 export default function Dashboard() {
 	const { view, activeCollectionId, triggerBookmarkRefetch } = useCollection();
+
+	const { toast } = useToast();
 
 	// Save link from clipboard — same behavior as Cmd+V paste (used by background context menu).
 	const handleSaveFromClipboard = async () => {
@@ -16,18 +22,18 @@ export default function Dashboard() {
 		try {
 			text = await navigator.clipboard.readText();
 		} catch {
-			toast.error("Could not read clipboard");
+			toast("Could not read clipboard", "error");
 			return;
 		}
 		text = text?.trim() ?? "";
 		if (!text) {
-			toast.error("Clipboard is empty");
+			toast("Clipboard is empty", "error");
 			return;
 		}
 		try {
 			new URL(text);
 		} catch {
-			toast.error("Clipboard does not contain a valid URL");
+			toast("Clipboard does not contain a valid URL", "error");
 			return;
 		}
 
@@ -47,15 +53,15 @@ export default function Dashboard() {
 
 		if (error) {
 			console.error("Failed to save bookmark:", error);
-			toast.error("Failed to save bookmark");
+			toast("Failed to save bookmark", "error");
 			return;
 		}
 
 		if (data && "id" in data) {
-			toast.success("Bookmark saved", {
-				description: text,
-				duration: 3000,
-			});
+			toast("Bookmark saved", "success");
+			// Prompt the global badge watcher so unlock celebrations appear
+			// immediately after saving a bookmark from the context menu.
+			window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
 			triggerBookmarkRefetch();
 		}
 	};
@@ -65,9 +71,7 @@ export default function Dashboard() {
 			<ContextMenu.Root>
 				{/* Full-size trigger so right-click anywhere on the main content (including empty list area) opens this menu. */}
 				<ContextMenu.Trigger
-					render={
-						<div className="flex min-h-0 flex-1 flex-col w-full" />
-					}
+					render={<div className="flex min-h-0 w-full flex-1 flex-col" />}
 				>
 					<div className={view === "inbox" ? "contents" : "hidden"}>
 						<BookmarkList />
@@ -80,9 +84,9 @@ export default function Dashboard() {
 				<ContextMenu.Portal>
 					<ContextMenu.Backdrop className="fixed inset-0 bg-transparent" />
 					<ContextMenu.Positioner>
-						<ContextMenu.Popup className="z-50 min-w-[180px] rounded-lg border border-border bg-popover py-1 text-xs shadow-lg">
+						<ContextMenu.Popup className={contextMenuPopupCls}>
 							<ContextMenu.Item
-								className="flex cursor-pointer select-none items-center gap-2 rounded-md px-2.5 py-1.5 text-foreground outline-none data-highlighted:bg-muted"
+								className={contextMenuItemCls}
 								onClick={() => void handleSaveFromClipboard()}
 							>
 								<span>Save link from clipboard</span>

@@ -28,12 +28,12 @@ export const collection = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		name: text("name").notNull(),
 		description: text("description"),
-		icon: text("icon"), // emoji or icon name
-		color: text("color"), // hex color for UI
+		icon: text("icon"),
+		color: text("color"),
 		visibility: visibilityEnum("visibility").default("private").notNull(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
 		isTrashed: boolean("is_trashed").default(false).notNull(),
 		trashedAt: timestamp("trashed_at"),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
 			.defaultNow()
 			.$onUpdate(() => new Date())
@@ -42,6 +42,49 @@ export const collection = pgTable(
 	(table) => [
 		index("collection_userId_idx").on(table.userId),
 		index("collection_visibility_idx").on(table.visibility),
+	],
+);
+
+// ─── Collection follow ────────────────────────────────────────────────────────
+//
+// When a user follows a collection:
+// - it shows in their header alongside their own collections (read-only)
+// - they see the owner's bookmarks live — no copying
+// - owner adds a bookmark → followers see it automatically
+//
+export const collectionFollow = pgTable(
+	"collection_follow",
+	{
+		followerId: text("follower_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		collectionId: text("collection_id")
+			.notNull()
+			.references(() => collection.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("collectionFollow_followerId_idx").on(table.followerId),
+		index("collectionFollow_collectionId_idx").on(table.collectionId),
+	],
+);
+
+// ─── User follow ──────────────────────────────────────────────────────────────
+
+export const userFollow = pgTable(
+	"user_follow",
+	{
+		followerId: text("follower_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		followingId: text("following_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at").defaultNow().notNull(),
+	},
+	(table) => [
+		index("uf_followerId_idx").on(table.followerId),
+		index("uf_followingId_idx").on(table.followingId),
 	],
 );
 
@@ -55,14 +98,14 @@ export const bookmark = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
 		collectionId: text("collection_id").references(() => collection.id, {
-			onDelete: "set null", // bookmark survives if collection is deleted
+			onDelete: "set null",
 		}),
 
 		// core
 		url: text("url").notNull(),
 		title: text("title"),
 		description: text("description"),
-		image: text("image"), // og:image
+		image: text("image"),
 		favicon: text("favicon"),
 		siteName: text("site_name"),
 
@@ -71,12 +114,12 @@ export const bookmark = pgTable(
 		isRead: boolean("is_read").default(false).notNull(),
 		isFavorite: boolean("is_favorite").default(false).notNull(),
 		isTrashed: boolean("is_trashed").default(false).notNull(),
-		trashedAt: timestamp("trashed_at"), // so you can auto-delete after X days
+		trashedAt: timestamp("trashed_at"),
 
-		// ai enrichment (populated async via Trigger.dev)
+		// ai enrichment
 		summary: text("summary"),
-		transcript: text("transcript"), // for YouTube links
-		embeddings: text("embeddings"), // pgvector later, text for now
+		transcript: text("transcript"),
+		embeddings: text("embeddings"),
 
 		createdAt: timestamp("created_at").defaultNow().notNull(),
 		updatedAt: timestamp("updated_at")
@@ -135,6 +178,34 @@ export const collectionRelations = relations(collection, ({ one, many }) => ({
 		references: [user.id],
 	}),
 	bookmarks: many(bookmark),
+	followers: many(collectionFollow),
+}));
+
+export const collectionFollowRelations = relations(
+	collectionFollow,
+	({ one }) => ({
+		follower: one(user, {
+			fields: [collectionFollow.followerId],
+			references: [user.id],
+		}),
+		collection: one(collection, {
+			fields: [collectionFollow.collectionId],
+			references: [collection.id],
+		}),
+	}),
+);
+
+export const userFollowRelations = relations(userFollow, ({ one }) => ({
+	follower: one(user, {
+		fields: [userFollow.followerId],
+		references: [user.id],
+		relationName: "follower",
+	}),
+	following: one(user, {
+		fields: [userFollow.followingId],
+		references: [user.id],
+		relationName: "following",
+	}),
 }));
 
 export const bookmarkRelations = relations(bookmark, ({ one, many }) => ({

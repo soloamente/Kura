@@ -1,6 +1,6 @@
-import { task } from "@trigger.dev/sdk/v3";
 import { db } from "@Kura/db";
 import { bookmark } from "@Kura/db/schema/bookmarks";
+import { task } from "@trigger.dev/sdk/v3";
 import { and, eq } from "drizzle-orm";
 
 interface EnrichBookmarkPayload {
@@ -147,6 +147,9 @@ export const enrichBookmark = task({
 			.set(updates)
 			.where(and(eq(bookmark.id, bookmarkId), eq(bookmark.userId, userId)))
 			.returning();
+		if (!updated) {
+			return { skipped: true, reason: "update failed" };
+		}
 
 		return {
 			success: true,

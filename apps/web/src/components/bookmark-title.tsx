@@ -189,6 +189,7 @@ export function BookmarkTitle({
 			    We deliberately avoid a <button> here because the entire row is already a <button>
 			    in BookmarkRow; nesting buttons would violate HTML rules and break hydration. */}
 			{state !== "loading" && state !== "generated" && needsTitle && (
+				// biome-ignore lint/a11y/useSemanticElements: parent row is a button; nesting <button> is invalid
 				<div
 					role="button"
 					tabIndex={0}

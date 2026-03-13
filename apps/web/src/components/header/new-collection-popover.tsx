@@ -6,11 +6,10 @@
  * Follows Emil's component design: clear props API, composition (uses Base UI Popover).
  */
 
-import { useState } from "react";
-import { Popover } from "@base-ui/react/popover";
-
 import { cn } from "@Kura/ui/lib/utils";
-import { IconPlus, IconPlusSm } from "nucleo-micro-bold";
+import { Popover } from "@base-ui/react/popover";
+import { IconPlusSm } from "nucleo-micro-bold";
+import { useState } from "react";
 
 export interface NewCollectionPopoverProps {
 	/** Controlled open state. */
@@ -52,9 +51,9 @@ export function NewCollectionPopover({
 		<Popover.Root open={open} onOpenChange={onOpenChange}>
 			<Popover.Trigger
 				className={cn(
-					"flex shrink-0 cursor-pointer items-center justify-center rounded-full outline-none select-none text-tertiary",
+					"flex shrink-0 cursor-pointer select-none items-center justify-center rounded-full text-tertiary outline-none",
 					"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-					"active:scale-[0.90] [@media(hover:hover)]:hover:text-primary data-popup-open:text-primary",
+					"active:scale-[0.90] data-popup-open:text-primary [@media(hover:hover)]:hover:text-primary",
 				)}
 				aria-label="Create new collection"
 				onClick={onTriggerClick}
@@ -68,11 +67,11 @@ export function NewCollectionPopover({
 							className ??
 							cn(
 								/* Emil UI Polish: shadow used as border for better blending with backgrounds. */
-								"rounded-xl bg-popover p-1 text-popover-foreground outline-none shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1),0_0_0_1px_hsl(var(--foreground)/0.08)]",
+								"rounded-xl bg-popover p-1 text-popover-foreground shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1),0_0_0_1px_hsl(var(--foreground)/0.08)] outline-none",
 							)
 						}
 					>
-						<Popover.Title className="pb-1 px-2 pt-2 text-xs font-medium">
+						<Popover.Title className="px-2 pt-2 pb-1 font-medium text-xs">
 							Create a new collection
 						</Popover.Title>
 						<form
@@ -84,7 +83,7 @@ export function NewCollectionPopover({
 								<input
 									type="text"
 									placeholder="Collection name"
-									className="min-w-0 w-full bg-transparent text-base outline-none"
+									className="w-full min-w-0 bg-transparent text-base outline-none"
 									value={inputValue}
 									onChange={(e) => setInputValue(e.target.value)}
 									aria-label="Collection name"
@@ -97,7 +96,7 @@ export function NewCollectionPopover({
 								disabled={disabled}
 								onClick={onSubmitClick}
 								className={cn(
-									"rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground",
+									"rounded-lg bg-primary px-3 py-1.5 font-medium text-primary-foreground text-sm",
 									"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 									"transition-opacity active:scale-[0.97] disabled:opacity-50 [@media(hover:hover)]:hover:opacity-90",
 								)}

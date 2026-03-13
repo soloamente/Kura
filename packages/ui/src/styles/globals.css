@@ -1,3 +1,4 @@
+@import "./theme.css"; /* custom themes */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -150,4 +151,8 @@
 	[id] {
 		scroll-margin-top: 5rem;
 	}
+}
+
+[data-density="compact"] .bookmark-row {
+	@apply py-1.5;
 }
