@@ -193,7 +193,7 @@ export const exploreRouter = new Elysia({ prefix: "/explore" })
 
 		const rows =
 			(
-				result as {
+				result as unknown as {
 					rows: { domain: string; save_count: number; example_url: string }[];
 				}
 			).rows ?? [];
