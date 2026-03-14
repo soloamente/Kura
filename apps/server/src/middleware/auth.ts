@@ -2,7 +2,7 @@ import { auth } from "@Kura/auth";
 import { db } from "@Kura/db";
 import { user as userTable } from "@Kura/db/schema/auth";
 import { eq } from "drizzle-orm";
-import Elysia from "elysia";
+import { Elysia } from "elysia";
 
 export const authMiddleware = new Elysia({ name: "auth-middleware" }).derive(
 	{ as: "global" },
