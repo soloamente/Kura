@@ -38,17 +38,20 @@ const app = new Elysia()
 	})
 	.post("/ai", async (context) => {
 		const body: unknown = await context.request.json();
-		const uiMessages =
+		const rawMessages =
 			typeof body === "object" && body !== null && "messages" in body
-				? ((body as { messages?: unknown }).messages ?? [])
-				: [];
+				? (body as { messages?: unknown }).messages
+				: undefined;
+		const uiMessages = Array.isArray(rawMessages) ? rawMessages : [];
 		const model = wrapLanguageModel({
 			model: google("gemini-2.5-flash"),
 			middleware: devToolsMiddleware(),
 		});
 		const result = streamText({
 			model,
-			messages: await convertToModelMessages(uiMessages),
+			messages: await convertToModelMessages(
+				uiMessages as Parameters<typeof convertToModelMessages>[0],
+			),
 		});
 
 		return result.toUIMessageStreamResponse();
