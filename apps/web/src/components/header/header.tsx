@@ -2,9 +2,16 @@
 
 import { cn } from "@Kura/ui/lib/utils";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { IconGear, IconPlusSm, IconTrashFilled } from "nucleo-micro-bold";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+	IconGear,
+	IconHouseFill,
+	IconPlusSm,
+	IconTrashFilled,
+} from "nucleo-micro-bold";
 import { IconReturnKeyFill12 } from "nucleo-ui-fill-12";
-import { IconDeleteLeftFill18 } from "nucleo-ui-fill-18";
+import { IconCompassFill18, IconDeleteLeftFill18 } from "nucleo-ui-fill-18";
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { useWebHaptics } from "web-haptics/react";
 import { SettingsModal } from "@/components/settings-modal";
@@ -139,6 +146,8 @@ const Header = forwardRef<HTMLElement, HeaderProps>(function Header(
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
 
 	const headerPillRef = useRef<HTMLDivElement | null>(null);
+	const pathname = usePathname();
+	const isExplorePage = pathname?.startsWith("/explore") ?? false;
 	const isExpanded = newCollectionStage > 0 || searchStage > 0;
 	const chipsHidden = newCollectionStage >= 1 || searchStage >= 1;
 
@@ -491,380 +500,430 @@ const Header = forwardRef<HTMLElement, HeaderProps>(function Header(
 			)}
 			{...props}
 		>
-			<div className="no-drag flex w-full min-w-0 items-center justify-center gap-1.5">
-				<div
-					ref={headerPillRef}
-					className="relative flex min-w-0 items-center overflow-hidden rounded-full bg-muted p-1 pr-1.5"
-				>
-					<div className="flex min-w-0 flex-1 items-center overflow-hidden">
-						{/* ── All tab + chips + Trash — hidden while either flow is open ── */}
-						<motion.div
-							className="flex items-center overflow-hidden"
-							initial={false}
-							animate={{
-								opacity: chipsHidden ? 0 : 1,
-								y: chipsHidden ? NEW_COLLECTION_CHIPS.exitOffsetY : 0,
-								maxWidth: chipsHidden ? 0 : 400,
-							}}
-							transition={
-								shouldReduceMotion
-									? { duration: 0 }
-									: {
-											opacity: NEW_COLLECTION_SPRING,
-											y: NEW_COLLECTION_SPRING,
-											maxWidth: { ...NEW_COLLECTION_SPRING, stiffness: 280 },
-										}
-							}
-						>
-							{/* All tab */}
-							<button
-								type="button"
-								className={cn(
-									"relative flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1 font-medium text-sm outline-none",
-									"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-									"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
-									activeCollectionId === null && view === "inbox"
-										? "bg-foreground text-background"
-										: "text-foreground",
-								)}
-								onClick={() => {
-									if (isExpanded) return;
-									setActiveCollectionId(null);
-									setView("inbox");
-								}}
-							>
-								All
-							</button>
+			<div className="no-drag flex w-full min-w-0 items-center justify-center gap-2">
+				{/* ── Pill 1: Dashboard | Explore (view switcher) ── */}
+				<div className="flex shrink-0 items-center gap-1 rounded-full bg-muted p-1">
+					<Link
+						href="/dashboard"
+						className={cn(
+							"flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1 font-medium text-sm outline-none transition-colors",
+							"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+							"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
+							!isExplorePage
+								? "bg-foreground text-background"
+								: "text-foreground",
+						)}
+						aria-current={!isExplorePage ? "page" : undefined}
+					>
+						<IconHouseFill size={14} aria-hidden />
+						<span>Dashboard</span>
+					</Link>
 
-							{/* Chips */}
+					<Link
+						href="/explore"
+						className={cn(
+							"flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1 font-medium text-sm outline-none transition-colors",
+							"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+							"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
+							isExplorePage
+								? "bg-foreground text-background"
+								: "text-foreground",
+						)}
+						aria-current={isExplorePage ? "page" : undefined}
+					>
+						<IconCompassFill18 size={14} aria-hidden />
+						<span>Explore</span>
+					</Link>
+				</div>
+
+				{/* ── Pill 2: All + chips + Trash + new collection + search (dashboard only) ── */}
+				{!isExplorePage && (
+					<div
+						ref={headerPillRef}
+						className="relative flex min-w-0 items-center overflow-hidden rounded-full bg-muted p-1 pr-1.5"
+					>
+						<div className="flex min-w-0 items-center overflow-hidden">
+							{/* ── All tab + chips + Trash — hidden while flow is open ── */}
 							<motion.div
-								className="flex min-w-0 items-center overflow-hidden"
+								className="flex items-center overflow-hidden"
 								initial={false}
 								animate={{
-									maxWidth:
-										isLoadingCollections ||
-										collections.length === 0 ||
-										chipsHidden
-											? 0
-											: `${CHIPS_WRAPPER_MAX_WIDTH_REM}rem`,
-								}}
-								transition={chipsWrapperTransition}
-							>
-								{collections.map((coll, index) => (
-									<CollectionChip
-										key={coll.id}
-										name={coll.name}
-										isSelected={
-											activeCollectionId === coll.id && view === "inbox"
-										}
-										isNew={newlyCreatedId === coll.id}
-										newChipStage={newChipStage}
-										isInitialLoad={
-											!hasAnimatedInitialLoad.current && collections.length > 0
-										}
-										initialLoadDelayMs={index * INITIAL_LOAD_STAGGER_MS}
-										onClick={() => {
-											setActiveCollectionId(coll.id);
-											setView("inbox");
-										}}
-										onDelete={(mode) => handleDeleteCollection(coll.id, mode)}
-										visibility={coll.visibility ?? "private"}
-										onVisibilityChange={(v) =>
-											handleVisibilityChange(coll.id, v)
-										}
-										onRename={(name) => handleRenameCollection(coll.id, name)}
-										color={coll.color}
-										onColorChange={(color) =>
-											handleCollectionColorChange(coll.id, color)
-										}
-										animation={chipAnimation}
-									/>
-								))}
-								{/* ── Followed collections (read-only) ── */}
-								{followedCollections.map((coll, index) => (
-									<CollectionChip
-										key={`followed-${coll.id}`}
-										name={coll.name}
-										isSelected={
-											activeCollectionId === coll.id && view === "inbox"
-										}
-										isNew={false}
-										newChipStage={0}
-										isInitialLoad={
-											!hasAnimatedInitialLoad.current &&
-											followedCollections.length > 0
-										}
-										initialLoadDelayMs={
-											(collections.length + index) * INITIAL_LOAD_STAGGER_MS
-										}
-										onClick={() => {
-											setActiveCollectionId(coll.id);
-											setView("inbox");
-										}}
-										owner={coll.owner}
-										onViewCreator={() => {
-											if (!coll.owner?.username) return;
-											// Navigate to the creator's public profile page
-											window.location.assign(`/${coll.owner.username}`);
-										}}
-										onUnfollowFollowed={async () => {
-											const prevFollowedIds = new Set(followedCollectionIds);
-											// Optimistically remove this collection from the followed list
-											setFollowedCollections((prev) =>
-												prev.filter((c) => c.id !== coll.id),
-											);
-											const nextIds = new Set(prevFollowedIds);
-											nextIds.delete(coll.id);
-											setFollowedCollectionIds(nextIds);
-
-											const res = await fetch(
-												`${process.env.NEXT_PUBLIC_SERVER_URL}/users/collections/${coll.id}/follow`,
-												{ method: "DELETE", credentials: "include" },
-											);
-											if (!res.ok) {
-												// Roll back local state on failure
-												setFollowedCollections((prev) => [...prev, coll]);
-												setFollowedCollectionIds(prevFollowedIds);
-											} else {
-												// Keep collection-follow achievements in sync
-												window.dispatchEvent(
-													new CustomEvent("kura:refresh-badges"),
-												);
-											}
-										}}
-										animation={chipAnimation}
-									/>
-								))}
-							</motion.div>
-
-							{/* Trash tab */}
-							<button
-								type="button"
-								onClick={() => {
-									if (isExpanded) return;
-									setView("trash");
-								}}
-								className={cn(
-									"relative flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1.75 font-medium text-sm outline-none",
-									"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-									"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
-									view === "trash"
-										? "bg-foreground text-background"
-										: "text-foreground",
-								)}
-							>
-								<IconTrashFilled size={14} />
-							</button>
-						</motion.div>
-
-						{/* ── New collection: plus + inline input ── */}
-						<div className="hidden min-w-0 items-center overflow-hidden sm:flex">
-							<motion.div
-								className="flex shrink-0 items-center overflow-hidden"
-								initial={false}
-								animate={{
-									opacity: searchStage >= 1 ? 0 : 1,
-									maxWidth: searchStage >= 1 ? 0 : 28,
+									opacity: chipsHidden ? 0 : 1,
+									y: chipsHidden ? NEW_COLLECTION_CHIPS.exitOffsetY : 0,
+									maxWidth: chipsHidden ? 0 : 400,
 								}}
 								transition={
 									shouldReduceMotion
 										? { duration: 0 }
 										: {
 												opacity: NEW_COLLECTION_SPRING,
+												y: NEW_COLLECTION_SPRING,
 												maxWidth: { ...NEW_COLLECTION_SPRING, stiffness: 280 },
 											}
 								}
 							>
+								{/* All tab */}
+								<button
+									type="button"
+									className={cn(
+										"relative flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1 font-medium text-sm outline-none",
+										"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+										"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
+										activeCollectionId === null && view === "inbox"
+											? "bg-foreground text-background"
+											: "text-foreground",
+									)}
+									onClick={() => {
+										if (isExpanded) return;
+										setActiveCollectionId(null);
+										setView("inbox");
+									}}
+								>
+									All
+								</button>
+
+								{/* Chips */}
+								<motion.div
+									className="flex min-w-0 items-center overflow-hidden"
+									initial={false}
+									animate={{
+										maxWidth:
+											isLoadingCollections ||
+											collections.length === 0 ||
+											chipsHidden
+												? 0
+												: `${CHIPS_WRAPPER_MAX_WIDTH_REM}rem`,
+									}}
+									transition={chipsWrapperTransition}
+								>
+									{collections.map((coll, index) => (
+										<CollectionChip
+											key={coll.id}
+											name={coll.name}
+											isSelected={
+												activeCollectionId === coll.id && view === "inbox"
+											}
+											isNew={newlyCreatedId === coll.id}
+											newChipStage={newChipStage}
+											isInitialLoad={
+												!hasAnimatedInitialLoad.current &&
+												collections.length > 0
+											}
+											initialLoadDelayMs={index * INITIAL_LOAD_STAGGER_MS}
+											onClick={() => {
+												setActiveCollectionId(coll.id);
+												setView("inbox");
+											}}
+											onDelete={(mode) => handleDeleteCollection(coll.id, mode)}
+											visibility={coll.visibility ?? "private"}
+											onVisibilityChange={(v) =>
+												handleVisibilityChange(coll.id, v)
+											}
+											onRename={(name) => handleRenameCollection(coll.id, name)}
+											color={coll.color}
+											onColorChange={(color) =>
+												handleCollectionColorChange(coll.id, color)
+											}
+											animation={chipAnimation}
+										/>
+									))}
+									{/* ── Followed collections (read-only) ── */}
+									{followedCollections.map((coll, index) => (
+										<CollectionChip
+											key={`followed-${coll.id}`}
+											name={coll.name}
+											isSelected={
+												activeCollectionId === coll.id && view === "inbox"
+											}
+											isNew={false}
+											newChipStage={0}
+											isInitialLoad={
+												!hasAnimatedInitialLoad.current &&
+												followedCollections.length > 0
+											}
+											initialLoadDelayMs={
+												(collections.length + index) * INITIAL_LOAD_STAGGER_MS
+											}
+											onClick={() => {
+												setActiveCollectionId(coll.id);
+												setView("inbox");
+											}}
+											owner={coll.owner}
+											onViewCreator={() => {
+												if (!coll.owner?.username) return;
+												// Navigate to the creator's public profile page
+												window.location.assign(`/${coll.owner.username}`);
+											}}
+											onUnfollowFollowed={async () => {
+												const prevFollowedIds = new Set(followedCollectionIds);
+												// Optimistically remove this collection from the followed list
+												setFollowedCollections((prev) =>
+													prev.filter((c) => c.id !== coll.id),
+												);
+												const nextIds = new Set(prevFollowedIds);
+												nextIds.delete(coll.id);
+												setFollowedCollectionIds(nextIds);
+
+												const res = await fetch(
+													`${process.env.NEXT_PUBLIC_SERVER_URL}/users/collections/${coll.id}/follow`,
+													{ method: "DELETE", credentials: "include" },
+												);
+												if (!res.ok) {
+													// Roll back local state on failure
+													setFollowedCollections((prev) => [...prev, coll]);
+													setFollowedCollectionIds(prevFollowedIds);
+												} else {
+													// Keep collection-follow achievements in sync
+													window.dispatchEvent(
+														new CustomEvent("kura:refresh-badges"),
+													);
+												}
+											}}
+											animation={chipAnimation}
+										/>
+									))}
+								</motion.div>
+
+								{/* Trash tab */}
+								<button
+									type="button"
+									onClick={() => {
+										if (isExpanded) return;
+										setView("trash");
+									}}
+									className={cn(
+										"relative flex shrink-0 cursor-pointer select-none items-center gap-1.5 rounded-full px-2.5 py-1.75 font-medium text-sm outline-none",
+										"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+										"active:scale-[0.97] [@media(hover:hover)]:hover:opacity-100",
+										view === "trash"
+											? "bg-foreground text-background"
+											: "text-foreground",
+									)}
+								>
+									<IconTrashFilled size={14} />
+								</button>
+							</motion.div>
+
+							{/* ── New collection + Search ── */}
+							<div className="hidden min-w-0 items-center overflow-hidden sm:flex">
+								<motion.div
+									className="flex shrink-0 items-center overflow-hidden"
+									initial={false}
+									animate={{
+										opacity: searchStage >= 1 ? 0 : 1,
+										maxWidth: searchStage >= 1 ? 0 : 28,
+									}}
+									transition={
+										shouldReduceMotion
+											? { duration: 0 }
+											: {
+													opacity: NEW_COLLECTION_SPRING,
+													maxWidth: {
+														...NEW_COLLECTION_SPRING,
+														stiffness: 280,
+													},
+												}
+									}
+								>
+									<motion.button
+										type="button"
+										className={cn(
+											"flex h-7 w-7 shrink-0 cursor-pointer select-none items-center justify-center rounded-full text-tertiary outline-none",
+											"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+											"active:scale-[0.90] [@media(hover:hover)]:hover:text-primary",
+											searchStage >= 1 ? "pointer-events-none" : "",
+										)}
+										aria-label={
+											newCollectionStage === 0
+												? "Create new collection"
+												: "Cancel creating collection"
+										}
+										onClick={() => {
+											if (newCollectionStage > 0) {
+												resetNewCollectionFlow();
+												return;
+											}
+											if (searchStage > 0) return;
+											trigger([{ duration: 50 }], { intensity: 0.77 });
+											setNewCollectionStage(1);
+										}}
+									>
+										<IconPlusSm />
+									</motion.button>
+								</motion.div>
+
+								<motion.form
+									className="flex items-center gap-1 overflow-hidden"
+									style={{
+										pointerEvents: newCollectionStage >= 2 ? "auto" : "none",
+									}}
+									initial={false}
+									animate={{
+										opacity: newCollectionStage >= 2 ? 1 : 0,
+										maxWidth:
+											newCollectionStage >= 2
+												? `${NEW_COLLECTION_INPUT.maxWidthRem}rem`
+												: 0,
+									}}
+									transition={
+										shouldReduceMotion
+											? { duration: 0 }
+											: {
+													opacity: NEW_COLLECTION_SPRING,
+													maxWidth: {
+														...NEW_COLLECTION_SPRING,
+														stiffness: 280,
+													},
+												}
+									}
+									onSubmit={(event) => {
+										event.preventDefault();
+										if (isSubmitting) return;
+										const name = newCollectionName.trim();
+										if (!name) return;
+										void handleCreateCollection(name);
+										setNewCollectionName("");
+										resetNewCollectionFlow();
+									}}
+								>
+									<input
+										ref={newCollectionInputRef}
+										type="text"
+										placeholder="Collection name"
+										className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+										value={newCollectionName}
+										onChange={(event) =>
+											setNewCollectionName(event.target.value)
+										}
+										onKeyDown={(event) => {
+											if (event.key === "Escape") {
+												event.stopPropagation();
+												resetNewCollectionFlow();
+											}
+										}}
+										spellCheck={false}
+										autoComplete="off"
+										aria-label="Collection name"
+										disabled={isSubmitting}
+									/>
+									<span
+										className="absolute right-3 mt-0.5 flex shrink-0 items-center text-muted-foreground"
+										aria-hidden
+									>
+										<IconReturnKeyFill12 size={14} />
+									</span>
+								</motion.form>
+							</div>
+
+							{/* ── Search: magnifier + inline input ── */}
+							<div className="hidden min-w-0 items-center overflow-hidden sm:flex">
 								<motion.button
 									type="button"
 									className={cn(
 										"flex h-7 w-7 shrink-0 cursor-pointer select-none items-center justify-center rounded-full text-tertiary outline-none",
 										"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
 										"active:scale-[0.90] [@media(hover:hover)]:hover:text-primary",
-										searchStage >= 1 ? "pointer-events-none" : "",
+										newCollectionStage >= 1
+											? "pointer-events-none opacity-0"
+											: "",
 									)}
 									aria-label={
-										newCollectionStage === 0
-											? "Create new collection"
-											: "Cancel creating collection"
+										searchStage === 0 ? "Search bookmarks" : "Close search"
 									}
 									onClick={() => {
-										if (newCollectionStage > 0) {
-											resetNewCollectionFlow();
+										if (searchStage > 0) {
+											resetSearchFlow();
 											return;
 										}
-										if (searchStage > 0) return;
-										trigger([{ duration: 50 }], { intensity: 0.77 });
-										setNewCollectionStage(1);
+										if (newCollectionStage > 0) return;
+										setSearchStage(1);
 									}}
 								>
-									<IconPlusSm />
-								</motion.button>
-							</motion.div>
-
-							<motion.form
-								className="flex items-center gap-1 overflow-hidden"
-								style={{
-									pointerEvents: newCollectionStage >= 2 ? "auto" : "none",
-								}}
-								initial={false}
-								animate={{
-									opacity: newCollectionStage >= 2 ? 1 : 0,
-									maxWidth:
-										newCollectionStage >= 2
-											? `${NEW_COLLECTION_INPUT.maxWidthRem}rem`
-											: 0,
-								}}
-								transition={
-									shouldReduceMotion
-										? { duration: 0 }
-										: {
-												opacity: NEW_COLLECTION_SPRING,
-												maxWidth: { ...NEW_COLLECTION_SPRING, stiffness: 280 },
-											}
-								}
-								onSubmit={(event) => {
-									event.preventDefault();
-									if (isSubmitting) return;
-									const name = newCollectionName.trim();
-									if (!name) return;
-									void handleCreateCollection(name);
-									setNewCollectionName("");
-									resetNewCollectionFlow();
-								}}
-							>
-								<input
-									ref={newCollectionInputRef}
-									type="text"
-									placeholder="Collection name"
-									className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-									value={newCollectionName}
-									onChange={(event) => setNewCollectionName(event.target.value)}
-									onKeyDown={(event) => {
-										if (event.key === "Escape") {
-											event.stopPropagation();
-											resetNewCollectionFlow();
-										}
-									}}
-									spellCheck={false}
-									autoComplete="off"
-									aria-label="Collection name"
-									disabled={isSubmitting}
-								/>
-								<span
-									className="absolute right-3 mt-0.5 flex shrink-0 items-center text-muted-foreground"
-									aria-hidden
-								>
-									<IconReturnKeyFill12 size={14} />
-								</span>
-							</motion.form>
-						</div>
-
-						{/* ── Search: magnifier + inline input ── */}
-						<div className="hidden min-w-0 items-center overflow-hidden sm:flex">
-							<motion.button
-								type="button"
-								className={cn(
-									"flex h-7 w-7 shrink-0 cursor-pointer select-none items-center justify-center rounded-full text-tertiary outline-none",
-									"focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-									"active:scale-[0.90] [@media(hover:hover)]:hover:text-primary",
-									newCollectionStage >= 1
-										? "pointer-events-none opacity-0"
-										: "",
-								)}
-								aria-label={
-									searchStage === 0 ? "Search bookmarks" : "Close search"
-								}
-								onClick={() => {
-									if (searchStage > 0) {
-										resetSearchFlow();
-										return;
-									}
-									if (newCollectionStage > 0) return;
-									setSearchStage(1);
-								}}
-							>
-								<svg
-									width="14"
-									height="14"
-									viewBox="0 0 14 14"
-									fill="none"
-									aria-hidden="true"
-								>
-									<circle
-										cx="6"
-										cy="6"
-										r="4.25"
-										stroke="currentColor"
-										strokeWidth="1.5"
-									/>
-									<path
-										d="M9.5 9.5L12.5 12.5"
-										stroke="currentColor"
-										strokeWidth="1.5"
-										strokeLinecap="round"
-									/>
-								</svg>
-							</motion.button>
-
-							<motion.div
-								className="flex items-center gap-1 overflow-hidden"
-								style={{
-									pointerEvents: searchStage >= 2 ? "auto" : "none",
-								}}
-								initial={false}
-								animate={{
-									opacity: searchStage >= 2 ? 1 : 0,
-									maxWidth:
-										searchStage >= 2 ? `${SEARCH_INPUT.maxWidthRem}rem` : 0,
-								}}
-								transition={
-									shouldReduceMotion
-										? { duration: 0 }
-										: {
-												opacity: NEW_COLLECTION_SPRING,
-												maxWidth: { ...NEW_COLLECTION_SPRING, stiffness: 280 },
-											}
-								}
-							>
-								<input
-									ref={searchInputRef}
-									type="text"
-									placeholder="Search bookmarks…"
-									className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-									value={searchInputValue}
-									onChange={(event) => {
-										setSearchInputValue(event.target.value);
-										setSearchQuery(event.target.value);
-									}}
-									onKeyDown={(event) => {
-										if (event.key === "Escape") {
-											event.stopPropagation();
-											resetSearchFlow();
-										}
-									}}
-									spellCheck={false}
-									autoComplete="off"
-									aria-label="Search bookmarks"
-								/>
-								{searchInputValue && (
-									<button
-										type="button"
-										className="absolute right-3 shrink-0 cursor-pointer select-none text-muted-foreground transition-colors hover:text-foreground"
-										onClick={() => {
-											setSearchInputValue("");
-											setSearchQuery("");
-											searchInputRef.current?.focus();
-										}}
-										aria-label="Clear search"
+									<svg
+										width="14"
+										height="14"
+										viewBox="0 0 14 14"
+										fill="none"
+										aria-hidden="true"
 									>
-										<IconDeleteLeftFill18 size={16} />
-									</button>
-								)}
-							</motion.div>
+										<circle
+											cx="6"
+											cy="6"
+											r="4.25"
+											stroke="currentColor"
+											strokeWidth="1.5"
+										/>
+										<path
+											d="M9.5 9.5L12.5 12.5"
+											stroke="currentColor"
+											strokeWidth="1.5"
+											strokeLinecap="round"
+										/>
+									</svg>
+								</motion.button>
+
+								<motion.div
+									className="flex items-center gap-1 overflow-hidden"
+									style={{
+										pointerEvents: searchStage >= 2 ? "auto" : "none",
+									}}
+									initial={false}
+									animate={{
+										opacity: searchStage >= 2 ? 1 : 0,
+										maxWidth:
+											searchStage >= 2 ? `${SEARCH_INPUT.maxWidthRem}rem` : 0,
+									}}
+									transition={
+										shouldReduceMotion
+											? { duration: 0 }
+											: {
+													opacity: NEW_COLLECTION_SPRING,
+													maxWidth: {
+														...NEW_COLLECTION_SPRING,
+														stiffness: 280,
+													},
+												}
+									}
+								>
+									<input
+										ref={searchInputRef}
+										type="text"
+										placeholder="Search bookmarks…"
+										className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+										value={searchInputValue}
+										onChange={(event) => {
+											setSearchInputValue(event.target.value);
+											setSearchQuery(event.target.value);
+										}}
+										onKeyDown={(event) => {
+											if (event.key === "Escape") {
+												event.stopPropagation();
+												resetSearchFlow();
+											}
+										}}
+										spellCheck={false}
+										autoComplete="off"
+										aria-label="Search bookmarks"
+									/>
+									{searchInputValue && (
+										<button
+											type="button"
+											className="absolute right-3 shrink-0 cursor-pointer select-none text-muted-foreground transition-colors hover:text-foreground"
+											onClick={() => {
+												setSearchInputValue("");
+												setSearchQuery("");
+												searchInputRef.current?.focus();
+											}}
+											aria-label="Clear search"
+										>
+											<IconDeleteLeftFill18 size={16} />
+										</button>
+									)}
+								</motion.div>
+							</div>
 						</div>
 					</div>
-				</div>
+				)}
 				<button
 					type="button"
 					onClick={() => setSettingsOpen(true)}

@@ -466,21 +466,40 @@ function BookmarkRow({
 				<ContextMenu.Trigger
 					render={(triggerProps) => (
 						<Tooltip.Root>
+							{/* Tooltip: consider Tooltip.Provider with delay={400} so preview appears only when user pauses on a row */}
 							<Tooltip.Trigger
 								render={
-									<button
+									// Row opens link; action buttons are separate. Cannot use <button> for row (invalid to nest buttons).
+									// biome-ignore lint/a11y/useSemanticElements: row contains action buttons; div + role="button" required
+									<div
 										{...triggerProps}
-										type="button"
+										role="button"
+										tabIndex={0}
 										onClick={() =>
 											window.open(bookmark.url, "_blank", "noopener,noreferrer")
 										}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault();
+												window.open(
+													bookmark.url,
+													"_blank",
+													"noopener,noreferrer",
+												);
+											}
+											// Let context menu trigger receive other keys if needed
+											if (typeof triggerProps.onKeyDown === "function") {
+												triggerProps.onKeyDown(e);
+											}
+										}}
 										className={cn(
-											"group flex w-full cursor-pointer items-center gap-3 rounded-full px-3.5 py-2.5 text-left transition-colors duration-100",
+											"group flex w-full cursor-pointer items-center gap-3 rounded-full px-4 py-3 text-left transition-colors duration-100",
 											"[@media(hover:hover)]:hover:bg-muted/50",
 											typeof triggerProps.className === "string"
 												? triggerProps.className
 												: undefined,
 										)}
+										aria-label={`Open ${bookmark.title ?? domain}`}
 									/>
 								}
 							>
@@ -506,12 +525,12 @@ function BookmarkRow({
 											className={cn(
 												"inline-flex max-w-[4rem] shrink-0 items-center gap-0.5 truncate rounded-full px-1.5 py-0.5 font-medium text-[10px]",
 												t.color
-													? "border border-border/50 text-foreground"
-													: "border border-border bg-muted text-muted-foreground",
+													? "border border-border/40 text-foreground/90"
+													: "border border-border bg-muted/80 text-muted-foreground",
 											)}
 											style={
 												t.color
-													? { backgroundColor: `${t.color}20` }
+													? { backgroundColor: `${t.color}15` }
 													: undefined
 											}
 											title={t.name}
@@ -535,7 +554,7 @@ function BookmarkRow({
 												duration: 0.18,
 												ease: [0.215, 0.61, 0.355, 1],
 											}}
-											className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground"
+											className="shrink-0 rounded-full bg-muted/80 px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground"
 										>
 											+{(bookmark.tags?.length ?? 0) - 3}
 										</motion.span>
@@ -563,16 +582,22 @@ function BookmarkRow({
 									)}
 								</span>
 
-								{/* title + domain */}
+								{/* title + domain on one line; domain visible only on hover */}
 								<span className="flex min-w-0 flex-1 items-baseline gap-2 overflow-hidden">
 									<BookmarkTitle
 										bookmarkId={bookmark.id}
 										initialTitle={bookmark.title}
 										url={bookmark.url}
 										autoGenerate={true}
-										className={cn("text-sm", !bookmark.isRead && "font-medium")}
+										className={cn(
+											"min-w-0 shrink truncate font-medium text-sm leading-tight",
+											bookmark.isRead && "font-normal",
+										)}
 									/>
-									<span className="shrink-0 text-muted-foreground text-xs">
+									<span
+										className="shrink-0 text-muted-foreground/90 text-xs opacity-0 transition-opacity duration-100 [@media(hover:hover)]:group-hover:opacity-100"
+										title={bookmark.sharedFrom ? undefined : domain}
+									>
 										{bookmark.sharedFrom
 											? `Shared by ${
 													bookmark.sharedFrom.name ||
@@ -583,13 +608,11 @@ function BookmarkRow({
 											: domain}
 									</span>
 								</span>
-								<div className="flex items-center justify-end">
-									{/* visibility icon — hidden in read-only mode; div used to avoid nesting button inside row */}
+								{/* Action buttons: semantic <button>, min 36px hit area for touch (critique: action targets, semantic actions) */}
+								<div className="flex items-center justify-end gap-0.5">
 									{!readOnly && onChangeVisibility && (
-										// biome-ignore lint/a11y/useSemanticElements: row is interactive; nesting <button> invalid
-										<div
-											role="button"
-											tabIndex={0}
+										<button
+											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
 												const order: Array<"private" | "friends" | "public"> = [
@@ -602,23 +625,8 @@ function BookmarkRow({
 													order[(currentIndex + 1) % order.length] ?? "private";
 												onChangeVisibility(next);
 											}}
-											onKeyDown={(e) => {
-												if (e.key === "Enter" || e.key === " ") {
-													e.preventDefault();
-													e.stopPropagation();
-													const order: Array<"private" | "friends" | "public"> =
-														["private", "friends", "public"];
-													const currentIndex = order.indexOf(
-														bookmark.visibility,
-													);
-													const next =
-														order[(currentIndex + 1) % order.length] ??
-														"private";
-													onChangeVisibility(next);
-												}
-											}}
 											className={cn(
-												"flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2 text-muted-foreground",
+												"flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-100",
 												"[@media(hover:hover)]:hover:bg-muted",
 											)}
 											title={`Visibility: ${bookmark.visibility}`}
@@ -631,32 +639,22 @@ function BookmarkRow({
 											) : (
 												<IconLockFilled size={16} />
 											)}
-										</div>
+										</button>
 									)}
 
-									{/* favorite star — hidden in read-only mode; div to avoid nesting button */}
 									{!readOnly && (
-										// biome-ignore lint/a11y/useSemanticElements: row is interactive; nesting <button> invalid
-										<div
-											role="button"
-											tabIndex={0}
+										<button
+											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
 												onToggleFavorite();
 											}}
-											onKeyDown={(e) => {
-												if (e.key === "Enter" || e.key === " ") {
-													e.preventDefault();
-													e.stopPropagation();
-													onToggleFavorite();
-												}
-											}}
 											className={cn(
-												"flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2 transition-colors duration-100",
+												"flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-100",
 												"[@media(hover:hover)]:hover:bg-muted",
 												bookmark.isFavorite
 													? "text-amber-400"
-													: "text-muted-foreground opacity-0 [@media(hover:hover)]:group-hover:opacity-100",
+													: "text-muted-foreground opacity-30 [@media(hover:hover)]:group-hover:opacity-100",
 											)}
 											title={
 												bookmark.isFavorite
@@ -674,36 +672,26 @@ function BookmarkRow({
 											) : (
 												<IconStar size={16} />
 											)}
-										</div>
+										</button>
 									)}
 
-									{/* trash — hidden in read-only mode; div to avoid nesting button */}
 									{!readOnly && (
-										// biome-ignore lint/a11y/useSemanticElements: row is interactive; nesting <button> invalid
-										<div
-											role="button"
-											tabIndex={0}
+										<button
+											type="button"
 											onClick={(e) => {
 												e.stopPropagation();
 												onTrash();
 											}}
-											onKeyDown={(e) => {
-												if (e.key === "Enter" || e.key === " ") {
-													e.preventDefault();
-													e.stopPropagation();
-													onTrash();
-												}
-											}}
 											className={cn(
-												"flex shrink-0 cursor-pointer items-center justify-center rounded-full p-2",
-												"text-muted-foreground [@media(hover:hover)]:hover:bg-muted [@media(hover:hover)]:hover:text-foreground",
-												"opacity-0 transition-colors duration-100 [@media(hover:hover)]:group-hover:opacity-100",
+												"flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-100",
+												"text-muted-foreground opacity-0 [@media(hover:hover)]:group-hover:opacity-100",
+												"[@media(hover:hover)]:hover:bg-muted [@media(hover:hover)]:group-hover:text-foreground",
 											)}
 											title="Move to trash"
 											aria-label="Move bookmark to trash"
 										>
 											<IconTrashFilled size={16} />
-										</div>
+										</button>
 									)}
 								</div>
 							</Tooltip.Trigger>
@@ -1859,8 +1847,8 @@ export function BookmarkList() {
 																		}
 															}
 															className={cn(
-																"px-3.5 pb-2.5 font-medium text-muted-foreground/70 text-xs capitalize",
-																groupIndex === 0 ? "pt-2" : "pt-10",
+																"w-fit rounded-full px-2.5 py-1 font-medium text-muted-foreground/85 text-xs capitalize",
+																groupIndex === 0 ? "pt-2" : "pt-8",
 															)}
 														>
 															{group.label}

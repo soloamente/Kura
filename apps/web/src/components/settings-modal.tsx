@@ -1140,7 +1140,7 @@ function FriendsSection() {
 									{req.requester?.name ||
 										(req.requester?.username
 											? `@${req.requester.username}`
-											: req.requesterId)}
+											: "someone")}
 								</span>
 								<div className="flex gap-2">
 									<button
@@ -1183,7 +1183,7 @@ function FriendsSection() {
 									{req.addressee?.name ||
 										(req.addressee?.username
 											? `@${req.addressee.username}`
-											: req.addresseeId)}
+											: "pending")}
 								</span>
 								<button
 									type="button"

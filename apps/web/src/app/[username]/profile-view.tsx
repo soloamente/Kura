@@ -4,6 +4,8 @@ import { useToast } from "@Kura/ui/components/toast";
 import { cn } from "@Kura/ui/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
+import { IconArrowLeft } from "nucleo-micro-bold";
 import { useEffect, useState } from "react";
 import {
 	AchievementBadgeChip,
@@ -677,6 +679,16 @@ export function ProfileView({
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="mx-auto max-w-2xl px-4 py-12">
+				{/* ── Back to app ── */}
+				<Link
+					href="/dashboard"
+					className="mb-6 -ml-1 flex w-fit cursor-pointer items-center gap-2 rounded-full py-1.5 pr-2.5 pl-1 text-muted-foreground text-sm outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					aria-label="Back to dashboard"
+				>
+					<IconArrowLeft size={16} aria-hidden />
+					<span>Back to dashboard</span>
+				</Link>
+
 				{/* ── Banner ── */}
 				<div className="mb-6 overflow-hidden rounded-3xl border border-border/60 bg-muted/40">
 					{profile.banner ? (

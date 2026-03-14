@@ -8,6 +8,7 @@ import { Elysia } from "elysia";
 import { adminRouter } from "./admin";
 import { bookmarksRouter } from "./bookmarks";
 import { collectionsRouter } from "./collections";
+import { exploreRouter } from "./explore";
 import { tagsRouter } from "./tags";
 import { uploadRouter } from "./upload";
 import { usersRouter } from "./users";
@@ -22,6 +23,7 @@ const app = new Elysia()
 		}),
 	)
 	.use(adminRouter)
+	.use(exploreRouter)
 	.use(usersRouter)
 	.use(uploadRouter)
 	.use(bookmarksRouter)
