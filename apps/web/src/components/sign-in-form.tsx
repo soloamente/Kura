@@ -1,14 +1,13 @@
-import { Button } from "@Kura/ui/components/button";
-import { Input } from "@Kura/ui/components/input";
-import { Label } from "@Kura/ui/components/label";
+"use client";
+
 import { useToast } from "@Kura/ui/components/toast";
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
+import type { ChangeEvent } from "react";
 import z from "zod";
-
 import { authClient } from "@/lib/auth-client";
-
-import Loader from "./loader";
 
 export default function SignInForm({
 	onSwitchToSignUp,
@@ -16,30 +15,35 @@ export default function SignInForm({
 	onSwitchToSignUp: () => void;
 }) {
 	const router = useRouter();
-	const { isPending } = authClient.useSession();
 	const { toast } = useToast();
 
+	// Avoid authClient.useSession() in SignInForm on this stack (Next 16, React 19, Turbopack)
+	// to prevent "selector is not a function"; render form without session check.
 	const form = useForm({
 		defaultValues: {
 			email: "",
 			password: "",
 		},
 		onSubmit: async ({ value }) => {
-			await authClient.signIn.email(
-				{
-					email: value.email,
-					password: value.password,
-				},
-				{
-					onSuccess: () => {
-						router.push("/dashboard");
-						toast("Sign in successful", "success");
+			try {
+				await authClient.signIn.email(
+					{
+						email: value.email,
+						password: value.password,
 					},
-					onError: (error) => {
-						toast(error.error.message || error.error.statusText, "error");
+					{
+						onSuccess: () => {
+							router.push("/dashboard");
+							toast("Sign in successful", "success");
+						},
+						onError: (error) => {
+							toast(error.error.message || error.error.statusText, "error");
+						},
 					},
-				},
-			);
+				);
+			} catch (error) {
+				console.error("Unexpected sign in error:", error);
+			}
 		},
 		validators: {
 			onSubmit: z.object({
@@ -49,13 +53,14 @@ export default function SignInForm({
 		},
 	});
 
-	if (isPending) {
-		return <Loader />;
-	}
-
 	return (
-		<div className="mx-auto mt-10 w-full max-w-md p-6">
-			<h1 className="mb-6 text-center font-bold text-3xl">Welcome Back</h1>
+		<motion.div
+			initial={{ opacity: 0 }}
+			animate={{ opacity: 1 }}
+			transition={{ duration: 0.2 }}
+			className="mx-auto w-full max-w-sm"
+		>
+			<h1 className="mb-10 text-center font-semibold text-3xl">Welcome Back</h1>
 
 			<form
 				onSubmit={(e) => {
@@ -63,49 +68,106 @@ export default function SignInForm({
 					e.stopPropagation();
 					form.handleSubmit();
 				}}
-				className="space-y-4"
+				className="space-y-3"
 			>
 				<div>
-					<form.Field name="email">
+					<form.Field
+						name="email"
+						validators={{
+							onChange: z
+								.string()
+								.min(1, "Email is required")
+								.email("Invalid email address"),
+						}}
+					>
 						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>Email</Label>
-								<Input
+							<div>
+								<motion.input
 									id={field.name}
 									name={field.name}
 									type="email"
 									value={field.state.value}
 									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="jane@example.com"
+									className="w-full rounded-2xl bg-input/30 px-3.75 py-3.25 font-medium leading-none transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									whileFocus={{ scale: 1.01 }}
+									transition={{ duration: 0.2 }}
+									style={{ willChange: "transform" }}
 								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
-									</p>
-								))}
+								<AnimatePresence mode="wait">
+									{field.state.meta.errors.length > 0 && (
+										<motion.div
+											initial={{ opacity: 0, height: 0, marginTop: 0 }}
+											animate={{ opacity: 1, height: "auto", marginTop: 4 }}
+											exit={{ opacity: 0, height: 0, marginTop: 0 }}
+											transition={{ duration: 0.2 }}
+											className="overflow-hidden"
+										>
+											<motion.p
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												exit={{ opacity: 0 }}
+												transition={{ duration: 0.15 }}
+												className="text-red-500 text-sm"
+											>
+												{field.state.meta.errors[0]?.message}
+											</motion.p>
+										</motion.div>
+									)}
+								</AnimatePresence>
 							</div>
 						)}
 					</form.Field>
 				</div>
 
 				<div>
-					<form.Field name="password">
+					<form.Field
+						name="password"
+						validators={{
+							onChange: z.string().min(1, "Password is required"),
+						}}
+					>
 						{(field) => (
-							<div className="space-y-2">
-								<Label htmlFor={field.name}>Password</Label>
-								<Input
+							<div>
+								<motion.input
 									id={field.name}
 									name={field.name}
 									type="password"
 									value={field.state.value}
 									onBlur={field.handleBlur}
-									onChange={(e) => field.handleChange(e.target.value)}
+									placeholder="jane123"
+									className="w-full rounded-2xl bg-input/30 px-3.75 py-3.25 font-medium leading-none transition-colors placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
+										field.handleChange(e.target.value)
+									}
+									whileFocus={{ scale: 1.01 }}
+									transition={{ duration: 0.2 }}
+									style={{ willChange: "transform" }}
 								/>
-								{field.state.meta.errors.map((error) => (
-									<p key={error?.message} className="text-red-500">
-										{error?.message}
-									</p>
-								))}
+								<AnimatePresence mode="wait">
+									{field.state.meta.errors.length > 0 && (
+										<motion.div
+											initial={{ opacity: 0, height: 0, marginTop: 0 }}
+											animate={{ opacity: 1, height: "auto", marginTop: 4 }}
+											exit={{ opacity: 0, height: 0, marginTop: 0 }}
+											transition={{ duration: 0.2 }}
+											className="overflow-hidden"
+										>
+											<motion.p
+												initial={{ opacity: 0 }}
+												animate={{ opacity: 1 }}
+												exit={{ opacity: 0 }}
+												transition={{ duration: 0.15 }}
+												className="text-red-500 text-sm"
+											>
+												{field.state.meta.errors[0]?.message}
+											</motion.p>
+										</motion.div>
+									)}
+								</AnimatePresence>
 							</div>
 						)}
 					</form.Field>
@@ -113,31 +175,73 @@ export default function SignInForm({
 
 				<form.Subscribe
 					selector={(state) => ({
-						canSubmit: state.canSubmit,
+						values: state.values,
 						isSubmitting: state.isSubmitting,
 					})}
 				>
-					{({ canSubmit, isSubmitting }) => (
-						<Button
-							type="submit"
-							className="w-full"
-							disabled={!canSubmit || isSubmitting}
-						>
-							{isSubmitting ? "Submitting..." : "Sign In"}
-						</Button>
-					)}
+					{(state) => {
+						const isEmailEmpty =
+							!state.values.email || state.values.email.trim() === "";
+						const isPasswordEmpty =
+							!state.values.password || state.values.password.trim() === "";
+						const isDisabled =
+							state.isSubmitting || isEmailEmpty || isPasswordEmpty;
+
+						return (
+							<motion.button
+								type="submit"
+								className="flex w-full cursor-pointer items-center justify-center rounded-2xl bg-primary px-4 py-2.75 font-medium text-primary-foreground transition-opacity duration-300 hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+								disabled={isDisabled}
+								whileHover={!isDisabled ? { scale: 1.01 } : undefined}
+								whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+								transition={{ duration: 0.2 }}
+								style={{ willChange: "transform" }}
+							>
+								<div className="flex h-5 items-center justify-center">
+									<AnimatePresence mode="wait" initial={false}>
+										{state.isSubmitting ? (
+											<motion.div
+												key="spinner"
+												initial={{ opacity: 0, scale: 0.8 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.8 }}
+												transition={{ duration: 0.2 }}
+												className="flex items-center justify-center"
+											>
+												<Loader2 className="size-5 animate-spin text-primary-foreground" />
+											</motion.div>
+										) : (
+											<motion.span
+												key="text"
+												initial={{ opacity: 0, scale: 0.8 }}
+												animate={{ opacity: 1, scale: 1 }}
+												exit={{ opacity: 0, scale: 0.8 }}
+												transition={{ duration: 0.2 }}
+												className="leading-none"
+											>
+												Login
+											</motion.span>
+										)}
+									</AnimatePresence>
+								</div>
+							</motion.button>
+						);
+					}}
 				</form.Subscribe>
 			</form>
 
-			<div className="mt-4 text-center">
-				<Button
-					variant="link"
+			<div className="mt-4 text-center text-sm">
+				<span className="text-muted-foreground">
+					Don&apos;t have an account?{" "}
+				</span>
+				<button
+					type="button"
 					onClick={onSwitchToSignUp}
-					className="text-indigo-600 hover:text-indigo-800"
+					className="h-auto cursor-pointer text-primary underline-offset-2 hover:underline"
 				>
-					Need an account? Sign Up
-				</Button>
+					Create an account
+				</button>
 			</div>
-		</div>
+		</motion.div>
 	);
 }

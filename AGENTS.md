@@ -15,7 +15,8 @@
 
 - Motion library is imported from `motion/react` in this codebase.
 - Server dev runs from repo root so Bun `--hot` watches `packages/auth`, `packages/env`, and `packages/db`; server loads `.env` from `apps/server` via `load-env.ts`.
-- Better Auth: avoid `authClient.useSession()` in SignInForm and SignUpForm on this stack (Next 16, React 19, Turbopack) to prevent "selector is not a function"; use `getSession()` or render the form without session there.
+- Better Auth: avoid `authClient.useSession()` in SignInForm and SignUpForm on this stack (Next 16, React 19, Turbopack); use `getSession()` or render the form without session check.
+- TanStack Form: always pass an explicit `selector` prop to `form.Subscribe`; omitting it causes "selector is not a function" at runtime.
 - R2 media storage is configured with bucket `kura-media`; credentials (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL`) live in `apps/server/.env`; the S3-compatible SDK endpoint is `https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com`; `R2_PUBLIC_URL` must be the public-facing `pub-*.r2.dev` (or custom domain) URL, not the API endpoint.
 - DB schema lives in `packages/db/src/schema/`; push schema changes with `bun drizzle-kit push` from `packages/db/`.
 - Base UI: `ContextMenu.SubmenuTrigger` must be a direct child of `ContextMenu.SubmenuRoot` — placing it as a sibling of `ContextMenu.Submenu` throws a runtime error.

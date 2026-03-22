@@ -15,6 +15,7 @@ import {
 } from "@/lib/badge-unlock-celebration";
 
 import { ThemeProvider } from "./theme-provider";
+import { Retune } from "retune";
 
 interface UserBadgesResponse {
 	catalog: Array<{
@@ -131,6 +132,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 						<DialRoot position="top-right" />
 					</>
 				)}
+				<Retune />
 			</ToastProvider>
 		</ThemeProvider>
 	);
