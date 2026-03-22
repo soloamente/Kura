@@ -23,6 +23,69 @@ import { authMiddleware } from "./middleware/auth";
 import { getAdminUser } from "./middleware/auth-guards";
 import type { recomputeAchievements } from "./trigger/recompute-achievements";
 
+/**
+ * Request body shapes for admin routes. Elysia validates these with `t.Object(...)` at
+ * runtime; we assert here so `tsc` matches what the validator guarantees (Elysia’s
+ * inferred handler types are `unknown` in some builds).
+ */
+interface AdminModerationReasonBody {
+	reason?: string;
+}
+
+type AchievementCelebration = "subtle" | "rare" | "epic";
+
+interface AdminAchievementRulePayload {
+	type: "metric_threshold";
+	metric:
+		| "bookmarks_total"
+		| "bookmarks_read"
+		| "bookmarks_favorited"
+		| "public_collections"
+		| "followers_total"
+		| "followed_collections"
+		| "account_age"
+		| "daily_streak"
+		| "xp_level";
+	threshold: number;
+}
+
+interface AdminCreateAchievementBody {
+	id: string;
+	name: string;
+	description: string;
+	icon: string;
+	xp: number;
+	tier?: number | null;
+	sortOrder?: number;
+	isDiscoverable?: boolean;
+	isActive?: boolean;
+	isArchived?: boolean;
+	celebration: AchievementCelebration;
+	rule: AdminAchievementRulePayload;
+}
+
+interface AdminPatchAchievementBody {
+	name?: string;
+	description?: string;
+	icon?: string;
+	xp?: number;
+	tier?: number | null;
+	sortOrder?: number;
+	isDiscoverable?: boolean;
+	isActive?: boolean;
+	isArchived?: boolean;
+	celebration?: AchievementCelebration;
+	rule?: AdminAchievementRulePayload;
+}
+
+interface AdminAchievementPreviewBody {
+	userId: string;
+}
+
+interface AdminAchievementReconcileBody {
+	userId?: string;
+}
+
 export const adminRouter = new Elysia({ prefix: "/admin" })
 	.use(authMiddleware)
 	.get("/me", async ({ user: me, set }) => {
@@ -170,6 +233,8 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const moderationBody = body as AdminModerationReasonBody;
+
 			const targetUser = await db.query.user.findFirst({
 				where: eq(user.id, params.id),
 			});
@@ -189,7 +254,7 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 				action: "ban",
 				actorUserId: adminUser.id,
 				targetUserId: targetUser.id,
-				reason: body.reason ?? "",
+				reason: moderationBody.reason ?? "",
 				now,
 			});
 
@@ -234,6 +299,8 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const moderationBody = body as AdminModerationReasonBody;
+
 			const targetUser = await db.query.user.findFirst({
 				where: eq(user.id, params.id),
 			});
@@ -253,7 +320,7 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 				action: "unban",
 				actorUserId: adminUser.id,
 				targetUserId: targetUser.id,
-				reason: body.reason ?? "",
+				reason: moderationBody.reason ?? "",
 				now,
 			});
 
@@ -311,8 +378,10 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const payload = body as AdminCreateAchievementBody;
+
 			const existing = await db.query.achievementDefinition.findFirst({
-				where: eq(achievementDefinition.id, body.id),
+				where: eq(achievementDefinition.id, payload.id),
 				columns: { id: true },
 			});
 
@@ -321,21 +390,21 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 				return { message: "Achievement id already exists" };
 			}
 
-			const parsedRule = parseAchievementRule(body.rule);
+			const parsedRule = parseAchievementRule(payload.rule);
 			const [created] = await db
 				.insert(achievementDefinition)
 				.values({
-					id: body.id,
-					name: body.name,
-					description: body.description,
-					icon: body.icon,
-					xp: body.xp,
-					tier: body.tier ?? null,
-					sortOrder: body.sortOrder ?? 0,
-					isDiscoverable: body.isDiscoverable ?? true,
-					isActive: body.isActive ?? true,
-					isArchived: body.isArchived ?? false,
-					celebration: body.celebration,
+					id: payload.id,
+					name: payload.name,
+					description: payload.description,
+					icon: payload.icon,
+					xp: payload.xp,
+					tier: payload.tier ?? null,
+					sortOrder: payload.sortOrder ?? 0,
+					isDiscoverable: payload.isDiscoverable ?? true,
+					isActive: payload.isActive ?? true,
+					isArchived: payload.isArchived ?? false,
+					celebration: payload.celebration,
 					rule: parsedRule,
 				})
 				.returning();
@@ -385,6 +454,8 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const payload = body as AdminPatchAchievementBody;
+
 			const existing = await db.query.achievementDefinition.findFirst({
 				where: eq(achievementDefinition.id, params.id),
 			});
@@ -394,27 +465,27 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 				return { message: "Achievement not found" };
 			}
 
-			const nextRule = body.rule
-				? parseAchievementRule(body.rule)
+			const nextRule = payload.rule
+				? parseAchievementRule(payload.rule)
 				: existing.rule;
 			const [updated] = await db
 				.update(achievementDefinition)
 				.set({
-					...(body.name !== undefined && { name: body.name }),
-					...(body.description !== undefined && {
-						description: body.description,
+					...(payload.name !== undefined && { name: payload.name }),
+					...(payload.description !== undefined && {
+						description: payload.description,
 					}),
-					...(body.icon !== undefined && { icon: body.icon }),
-					...(body.xp !== undefined && { xp: body.xp }),
-					...(body.tier !== undefined && { tier: body.tier }),
-					...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),
-					...(body.isDiscoverable !== undefined && {
-						isDiscoverable: body.isDiscoverable,
+					...(payload.icon !== undefined && { icon: payload.icon }),
+					...(payload.xp !== undefined && { xp: payload.xp }),
+					...(payload.tier !== undefined && { tier: payload.tier }),
+					...(payload.sortOrder !== undefined && { sortOrder: payload.sortOrder }),
+					...(payload.isDiscoverable !== undefined && {
+						isDiscoverable: payload.isDiscoverable,
 					}),
-					...(body.isActive !== undefined && { isActive: body.isActive }),
-					...(body.isArchived !== undefined && { isArchived: body.isArchived }),
-					...(body.celebration !== undefined && {
-						celebration: body.celebration,
+					...(payload.isActive !== undefined && { isActive: payload.isActive }),
+					...(payload.isArchived !== undefined && { isArchived: payload.isArchived }),
+					...(payload.celebration !== undefined && {
+						celebration: payload.celebration,
 					}),
 					rule: nextRule,
 					updatedAt: new Date(),
@@ -466,6 +537,8 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const previewBody = body as AdminAchievementPreviewBody;
+
 			const definition = await db.query.achievementDefinition.findFirst({
 				where: eq(achievementDefinition.id, params.id),
 			});
@@ -475,7 +548,7 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 				return { message: "Achievement not found" };
 			}
 
-			const stats = await recomputeStatsForUser(body.userId);
+			const stats = await recomputeStatsForUser(previewBody.userId);
 			if (!stats) {
 				set.status = 404;
 				return { message: "User not found" };
@@ -484,7 +557,7 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const unlockedEntry = await db.query.userAchievement.findFirst({
 				where: and(
 					eq(userAchievement.achievementId, params.id),
-					eq(userAchievement.userId, body.userId),
+					eq(userAchievement.userId, previewBody.userId),
 				),
 			});
 			const parsedRule = parseAchievementRule(definition.rule);
@@ -525,17 +598,19 @@ export const adminRouter = new Elysia({ prefix: "/admin" })
 			const adminUser = getAdminUser(me, set);
 			if ("message" in adminUser) return adminUser;
 
+			const reconcileBody = body as AdminAchievementReconcileBody;
+
 			await syncDefaultAchievementDefinitions();
 			const result = await tasks.trigger<typeof recomputeAchievements>(
 				"recompute-achievements",
 				{
-					userId: body.userId ?? undefined,
+					userId: reconcileBody.userId ?? undefined,
 				},
 			);
 
 			return {
 				triggerId: result.id,
-				scope: body.userId ? "single_user" : "all_users",
+				scope: reconcileBody.userId ? "single_user" : "all_users",
 			};
 		},
 		{

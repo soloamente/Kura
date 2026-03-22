@@ -495,7 +495,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(function Header(
 		<header
 			ref={ref}
 			className={cn(
-				"flex w-full shrink-0 items-center justify-center pt-[max(1.25rem,env(safe-area-inset-top))] pb-8",
+				"static flex flex-row w-full shrink-0 items-center justify-center pt-[max(1.25rem,env(safe-area-inset-top))] pb-8",
 				className,
 			)}
 			{...props}
