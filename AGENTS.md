@@ -2,6 +2,7 @@
 
 ## Learned User Preferences
 
+- Git: when pushing changes to the remote repository, push to **`main`** (merge or work on `main` as the default integration branch unless the user explicitly asks for a different branch).
 - Prefer slow, smooth UI animations; when the user reports "chunky," "fast without smoothness," or "weird," use spring physics or longer durations with ease-in-out instead of short duration + cubic ease.
 - For header or chip collapse flows, include all relevant tabs (e.g. "All") in the animated exit so they fade or collapse together; collapse the group's maxWidth to 0 so hidden elements do not affect layout.
 - When an animated element (e.g. plus icon with translateX) escapes its container despite overflow-hidden, prefer removing the transform over adding more overflow or wrapper fixes.
