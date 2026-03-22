@@ -10,6 +10,34 @@ import { authMiddleware } from "./middleware/auth";
 import { getActiveUser } from "./middleware/auth-guards";
 import type { enrichBookmark } from "./trigger/enrich-bookmark";
 
+/**
+ * Elysia validates these with `t.Object`; `tsc` still sees `body` as `unknown`, so we
+ * assert shapes that match the route schemas (same approach as `admin.ts`).
+ */
+interface CreateBookmarkBody {
+	url: string;
+	collectionId?: string | null;
+}
+
+interface MoveBookmarkBody {
+	collectionId: string | null;
+}
+
+type BookmarkVisibility = "private" | "friends" | "public";
+
+interface BookmarkVisibilityBody {
+	visibility: BookmarkVisibility;
+}
+
+interface BookmarkTagsBody {
+	tagIds: string[];
+}
+
+interface UpdateBookmarkBody {
+	title?: string | null;
+	description?: string | null;
+}
+
 export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 	.use(authMiddleware)
 
@@ -48,10 +76,12 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as CreateBookmarkBody;
+
 			const existing = await db.query.bookmark.findFirst({
 				where: and(
 					eq(bookmark.userId, activeUser.id),
-					eq(bookmark.url, body.url),
+					eq(bookmark.url, payload.url),
 				),
 			});
 
@@ -65,9 +95,9 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 				.values({
 					id: crypto.randomUUID(),
 					userId: activeUser.id,
-					url: body.url,
-					collectionId: body.collectionId ?? null,
-					title: body.url,
+					url: payload.url,
+					collectionId: payload.collectionId ?? null,
+					title: payload.url,
 				})
 				.returning();
 
@@ -107,14 +137,16 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as CreateBookmarkBody;
+
 			const inserted = await db
 				.insert(bookmark)
 				.values({
 					id: crypto.randomUUID(),
 					userId: activeUser.id,
-					url: body.url,
-					collectionId: body.collectionId ?? null,
-					title: body.url,
+					url: payload.url,
+					collectionId: payload.collectionId ?? null,
+					title: payload.url,
 				})
 				.returning();
 
@@ -203,9 +235,12 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 		async ({ params, body, user, set }) => {
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
+
+			const payload = body as MoveBookmarkBody;
+
 			const [updated] = await db
 				.update(bookmark)
-				.set({ collectionId: body.collectionId, updatedAt: new Date() })
+				.set({ collectionId: payload.collectionId, updatedAt: new Date() })
 				.where(
 					and(eq(bookmark.id, params.id), eq(bookmark.userId, activeUser.id)),
 				)
@@ -343,10 +378,12 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as BookmarkVisibilityBody;
+
 			const [updated] = await db
 				.update(bookmark)
 				.set({
-					visibility: body.visibility,
+					visibility: payload.visibility,
 					updatedAt: new Date(),
 				})
 				.where(
@@ -392,7 +429,8 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 				return { message: "Not found" };
 			}
 
-			const tagIds = body.tagIds ?? [];
+			const payload = body as BookmarkTagsBody;
+			const tagIds = payload.tagIds ?? [];
 
 			// If there are tag IDs, verify they all belong to this user.
 			if (tagIds.length > 0) {
@@ -475,12 +513,14 @@ export const bookmarksRouter = new Elysia({ prefix: "/bookmarks" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as UpdateBookmarkBody;
+
 			const [updated] = await db
 				.update(bookmark)
 				.set({
-					...(body.title !== undefined && { title: body.title }),
-					...(body.description !== undefined && {
-						description: body.description,
+					...(payload.title !== undefined && { title: payload.title }),
+					...(payload.description !== undefined && {
+						description: payload.description,
 					}),
 					updatedAt: new Date(),
 				})
