@@ -1,6 +1,5 @@
 import { auth } from "@Kura/auth";
 import { env } from "@Kura/env/server";
-import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { google } from "@ai-sdk/google";
 import { cors } from "@elysiajs/cors";
 import { convertToModelMessages, streamText, wrapLanguageModel } from "ai";
@@ -43,10 +42,16 @@ const app = new Elysia()
 				? (body as { messages?: unknown }).messages
 				: undefined;
 		const uiMessages = Array.isArray(rawMessages) ? rawMessages : [];
-		const model = wrapLanguageModel({
-			model: google("gemini-2.5-flash"),
-			middleware: devToolsMiddleware(),
-		});
+		// DevTools touches the filesystem / local server — load it only in development
+		// so Vercel serverless cold starts do not import it in production.
+		const baseModel = google("gemini-2.5-flash");
+		const model =
+			env.NODE_ENV === "development"
+				? wrapLanguageModel({
+						model: baseModel,
+						middleware: (await import("@ai-sdk/devtools")).devToolsMiddleware(),
+					})
+				: baseModel;
 		const result = streamText({
 			model,
 			messages: await convertToModelMessages(
