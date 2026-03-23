@@ -56,9 +56,17 @@ const app = new Elysia()
 
 		return result.toUIMessageStreamResponse();
 	})
-	.get("/", () => "OK")
-	.listen(3000, () => {
-		console.log("Server is running on http://localhost:3000");
-	});
+	.get("/", () => "OK");
 
+// Vercel runs the bundle as a serverless function: `app.listen` is not supported there
+// (see https://vercel.com/docs/frameworks/backend/elysia). Export the app as default;
+// only bind to a port for local / self-hosted runs.
+if (process.env.VERCEL !== "1") {
+	const port = Number(process.env.PORT) || 3000;
+	app.listen(port, () => {
+		console.log(`Server is running on http://localhost:${port}`);
+	});
+}
+
+export default app;
 export type App = typeof app;
