@@ -1,7 +1,7 @@
 import { defineConfig } from "tsdown";
 
 export default defineConfig({
-	entry: "./src/index.ts",
+	entry: "./src/main.ts",
 	format: "esm",
 	outDir: "./dist",
 	clean: true,
@@ -15,7 +15,7 @@ export default defineConfig({
 		/^ai$/,
 		/^@ai-sdk\//,
 		/^better-auth/,
-		/^zod/, // zod, zod/v4, zod/v3, …
+		/^zod/, // zod, zod/v4, zod/v3, ...
 		/^dotenv/, // dotenv, dotenv/config
 		/^@aws-sdk\//,
 	],
