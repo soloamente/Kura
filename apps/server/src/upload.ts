@@ -21,6 +21,14 @@ const PUBLIC_BASE = (process.env.R2_PUBLIC_URL ?? "").replace(/\/$/, "");
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
+/**
+ * Elysia validates `t.File()` at runtime; strict `tsc` (e.g. on Vercel) may still type
+ * `body` as `unknown`.
+ */
+interface UploadImageBody {
+	file: File;
+}
+
 // ─── Router ───────────────────────────────────────────────────────────────────
 
 export const uploadRouter = new Elysia({ prefix: "/users/me" })
@@ -33,7 +41,8 @@ export const uploadRouter = new Elysia({ prefix: "/users/me" })
 			const activeUser = getActiveUser(me, set);
 			if ("message" in activeUser) return activeUser;
 
-			const file: File = body.file;
+			const payload = body as UploadImageBody;
+			const file: File = payload.file;
 
 			// validate mime type
 			if (!ALLOWED_TYPES.includes(file.type)) {
