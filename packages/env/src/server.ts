@@ -2,7 +2,9 @@ import "dotenv/config";
 import { createEnv } from "@t3-oss/env-core";
 import { z } from "zod";
 
-export const env = createEnv({
+// Explicit `undefined` generic: server-only config — otherwise `TPrefix` can widen and
+// `createEnv` mis-types the `server` map (prefix / no-prefix branch) under strict tsc.
+export const env = createEnv<undefined>({
 	server: {
 		DATABASE_URL: z.string().min(1),
 		BETTER_AUTH_SECRET: z.string().min(32),
