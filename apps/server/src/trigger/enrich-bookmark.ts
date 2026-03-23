@@ -1,6 +1,6 @@
 import { db } from "@Kura/db";
 import { bookmark } from "@Kura/db/schema/bookmarks";
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 import { and, eq } from "drizzle-orm";
 
 interface EnrichBookmarkPayload {

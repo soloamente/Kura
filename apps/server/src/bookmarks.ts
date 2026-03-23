@@ -1,7 +1,7 @@
 import { db } from "@Kura/db";
 import { bookmark, bookmarkTag, tag } from "@Kura/db/schema/bookmarks";
 import { google } from "@ai-sdk/google";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { generateText } from "ai";
 import { and, eq, inArray, isNull, like, lt, or } from "drizzle-orm";
 import { Elysia, t } from "elysia";

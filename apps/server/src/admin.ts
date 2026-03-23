@@ -5,7 +5,7 @@ import {
 } from "@Kura/db/schema/achievements";
 import { adminActionLog, user } from "@Kura/db/schema/auth";
 import { userFollow } from "@Kura/db/schema/bookmarks";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import {

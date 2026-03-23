@@ -1,6 +1,6 @@
 import { db } from "@Kura/db";
 import { bookmark, collection } from "@Kura/db/schema/bookmarks";
-import { schedules } from "@trigger.dev/sdk/v3";
+import { schedules } from "@trigger.dev/sdk";
 import { and, eq, isNotNull, lt } from "drizzle-orm";
 
 export const purgeTrash = schedules.task({

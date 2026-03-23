@@ -1,6 +1,6 @@
 import { db } from "@Kura/db";
 import { user } from "@Kura/db/schema/auth";
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 import { eq } from "drizzle-orm";
 import { recomputeStatsForUser } from "../achievements";
 
