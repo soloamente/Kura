@@ -5,6 +5,6 @@
  * resolve workspace TypeScript entrypoints (see ERR_MODULE_NOT_FOUND on Vercel).
  */
 export type { App } from "./main";
-// tsdown emits JS only for the bundle; types for consumers come from `./main` above.
+// Bundled JS has no sibling .d.ts; server `tsc -b` needs this suppression.
 // @ts-expect-error -- no declaration file for the Rolldown output artifact
 export { default } from "../dist/main.mjs";

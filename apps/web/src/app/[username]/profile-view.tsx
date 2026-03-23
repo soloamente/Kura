@@ -12,6 +12,7 @@ import {
 	type AchievementBadgeData,
 } from "@/components/achievement-badge";
 import { api } from "@/lib/api";
+import { authClient } from "@/lib/auth-client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -459,21 +460,29 @@ function CollectionCard({
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-export function ProfileView({
-	profile: initialProfile,
-	isOwnProfile,
-}: {
-	profile: Profile;
-	isOwnProfile: boolean;
-}) {
+export function ProfileView({ profile: initialProfile }: { profile: Profile }) {
 	const { toast } = useToast();
 	const [profile, setProfile] = useState(initialProfile);
+	const [isOwnProfile, setIsOwnProfile] = useState(false);
 	const [tab, setTab] = useState<Tab>("bookmarks");
 	const [bookmarks, setBookmarks] = useState<PublicBookmark[]>([]);
 	const [collections, setCollections] = useState<PublicCollection[]>([]);
 	const [badges, setBadges] = useState<PublicBadge[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [saveBookmark, setSaveBookmark] = useState<PublicBookmark | null>(null);
+
+	// Cross-origin: only the browser can attach the API session cookie for /users/me.
+	useEffect(() => {
+		let cancelled = false;
+		void (async () => {
+			const { data } = await authClient.getSession();
+			if (cancelled) return;
+			if (data?.user?.id === profile.id) setIsOwnProfile(true);
+		})();
+		return () => {
+			cancelled = true;
+		};
+	}, [profile.id]);
 
 	// fetch tab content and keep it fresh while viewing the profile
 	useEffect(() => {
