@@ -72,10 +72,9 @@ export function UsernameOnboarding({
 	};
 
 	const isValid = username.length >= 2;
+	// Only allow submit when not checking/taken/saving — narrowed to available|idle here
 	const canSubmit =
-		isValid &&
-		(status === "available" || status === "idle") &&
-		status !== "saving";
+		isValid && (status === "available" || status === "idle");
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-background">

@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 "use client";
 
 import Lottie from "lottie-react";
-// @ts-expect-error - JSON animation data is bundled by the build tooling.
+// JSON animation data is resolved via the package bundler / TS `resolveJsonModule`.
 import goldStarPlayful from "./Gold-Star-Playful.json";
 import type { GoldStarProps } from "./GoldStar";
 
