@@ -5,6 +5,19 @@ import { Elysia, t } from "elysia";
 import { authMiddleware } from "./middleware/auth";
 import { getActiveUser } from "./middleware/auth-guards";
 
+/**
+ * Elysia validates with `t.Object`; Vercel `tsc` still types `body` as `unknown`.
+ */
+interface CreateTagBody {
+	name: string;
+	color?: string | null;
+}
+
+interface UpdateTagBody {
+	name?: string;
+	color?: string | null;
+}
+
 export const tagsRouter = new Elysia({ prefix: "/tags" })
 	.use(authMiddleware)
 
@@ -31,7 +44,9 @@ export const tagsRouter = new Elysia({ prefix: "/tags" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
-			const rawName = body.name.trim();
+			const payload = body as CreateTagBody;
+
+			const rawName = payload.name.trim();
 			if (!rawName) {
 				set.status = 400;
 				return { message: "Tag name is required" };
@@ -56,7 +71,7 @@ export const tagsRouter = new Elysia({ prefix: "/tags" })
 					id: crypto.randomUUID(),
 					userId: activeUser.id,
 					name: rawName,
-					color: body.color ?? null,
+					color: payload.color ?? null,
 				})
 				.returning();
 
@@ -77,6 +92,8 @@ export const tagsRouter = new Elysia({ prefix: "/tags" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as UpdateTagBody;
+
 			const existing = await db.query.tag.findFirst({
 				where: eq(tag.id, params.id),
 			});
@@ -87,15 +104,15 @@ export const tagsRouter = new Elysia({ prefix: "/tags" })
 			}
 
 			const updates: { name?: string; color?: string | null } = {};
-			if (body.name !== undefined) {
-				const trimmed = body.name.trim();
+			if (payload.name !== undefined) {
+				const trimmed = payload.name.trim();
 				if (!trimmed) {
 					set.status = 400;
 					return { message: "Tag name cannot be empty" };
 				}
 				updates.name = trimmed;
 			}
-			if (body.color !== undefined) updates.color = body.color;
+			if (payload.color !== undefined) updates.color = payload.color;
 
 			const [updated] = await db
 				.update(tag)
