@@ -23,6 +23,27 @@ import {
 import { authMiddleware } from "./middleware/auth";
 import { getActiveUser } from "./middleware/auth-guards";
 
+/**
+ * Elysia validates with `t.Object`; Vercel `tsc` still types `body` as `unknown`.
+ */
+interface FriendRequestBody {
+	username: string;
+}
+
+interface UpdateMeBody {
+	name?: string;
+	username?: string | null;
+	bio?: string | null;
+	image?: string | null;
+	banner?: string | null;
+}
+
+interface ShareWithFriendBody {
+	bookmarkId?: string | null;
+	collectionId?: string | null;
+	recipientUsername: string;
+}
+
 export const usersRouter = new Elysia({ prefix: "/users" })
 	.use(authMiddleware)
 
@@ -75,8 +96,10 @@ export const usersRouter = new Elysia({ prefix: "/users" })
 			const activeUser = getActiveUser(me, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as FriendRequestBody;
+
 			const target = await db.query.user.findFirst({
-				where: eq(user.username, body.username),
+				where: eq(user.username, payload.username),
 				columns: { id: true },
 			});
 			if (!target) {
@@ -349,11 +372,13 @@ export const usersRouter = new Elysia({ prefix: "/users" })
 			const activeUser = getActiveUser(me, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as UpdateMeBody;
+
 			// check username uniqueness if changing it
-			if (body.username) {
+			if (payload.username) {
 				const existing = await db.query.user.findFirst({
 					where: and(
-						eq(user.username, body.username),
+						eq(user.username, payload.username),
 						ne(user.id, activeUser.id),
 					),
 				});
@@ -366,11 +391,11 @@ export const usersRouter = new Elysia({ prefix: "/users" })
 			const [updated] = await db
 				.update(user)
 				.set({
-					...(body.name && { name: body.name }),
-					...(body.username !== undefined && { username: body.username }),
-					...(body.bio !== undefined && { bio: body.bio }),
-					...(body.image !== undefined && { image: body.image }),
-					...(body.banner !== undefined && { banner: body.banner }),
+					...(payload.name && { name: payload.name }),
+					...(payload.username !== undefined && { username: payload.username }),
+					...(payload.bio !== undefined && { bio: payload.bio }),
+					...(payload.image !== undefined && { image: payload.image }),
+					...(payload.banner !== undefined && { banner: payload.banner }),
 					updatedAt: new Date(),
 				})
 				.where(eq(user.id, activeUser.id))
@@ -809,7 +834,8 @@ export const usersRouter = new Elysia({ prefix: "/users" })
 			const activeUser = getActiveUser(me, set);
 			if ("message" in activeUser) return activeUser;
 
-			const { bookmarkId, collectionId, recipientUsername } = body;
+			const { bookmarkId, collectionId, recipientUsername } =
+				body as ShareWithFriendBody;
 
 			const hasBookmark =
 				typeof bookmarkId === "string" && bookmarkId.length > 0;
