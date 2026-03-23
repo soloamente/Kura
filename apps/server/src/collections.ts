@@ -5,6 +5,24 @@ import { Elysia, t } from "elysia";
 import { authMiddleware } from "./middleware/auth";
 import { getActiveUser } from "./middleware/auth-guards";
 
+/**
+ * Elysia validates with `t.Object`; Vercel `tsc` still types `body` as `unknown`.
+ */
+interface CreateCollectionBody {
+	name: string;
+}
+
+interface UpdateCollectionBody {
+	name?: string;
+	color?: string | null;
+}
+
+type CollectionVisibility = "private" | "friends" | "public";
+
+interface CollectionVisibilityBody {
+	visibility: CollectionVisibility;
+}
+
 export const collectionsRouter = new Elysia({ prefix: "/collections" })
 	.use(authMiddleware)
 
@@ -57,12 +75,14 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as CreateCollectionBody;
+
 			const [newCollection] = await db
 				.insert(collection)
 				.values({
 					id: crypto.randomUUID(),
 					userId: activeUser.id,
-					name: body.name,
+					name: payload.name,
 				})
 				.returning();
 
@@ -78,11 +98,13 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as UpdateCollectionBody;
+
 			const [updated] = await db
 				.update(collection)
 				.set({
-					...(body.name !== undefined && { name: body.name }),
-					...(body.color !== undefined && { color: body.color }),
+					...(payload.name !== undefined && { name: payload.name }),
+					...(payload.color !== undefined && { color: payload.color }),
 					updatedAt: new Date(),
 				})
 				.where(
@@ -275,9 +297,11 @@ export const collectionsRouter = new Elysia({ prefix: "/collections" })
 			const activeUser = getActiveUser(user, set);
 			if ("message" in activeUser) return activeUser;
 
+			const payload = body as CollectionVisibilityBody;
+
 			const [updated] = await db
 				.update(collection)
-				.set({ visibility: body.visibility, updatedAt: new Date() })
+				.set({ visibility: payload.visibility, updatedAt: new Date() })
 				.where(
 					and(
 						eq(collection.id, params.id),
