@@ -1,7 +1,15 @@
 import "@Kura/env/web";
+import crypto from "node:crypto";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	// Bust static chunk URLs when the API origin changes so CDN/browser caches cannot keep an
+	// old bundle that inlined a different `NEXT_PUBLIC_SERVER_URL` (e.g. localhost).
+	generateBuildId: async () => {
+		const url = process.env.NEXT_PUBLIC_SERVER_URL ?? "";
+		const hash = crypto.createHash("sha1").update(url).digest("hex").slice(0, 12);
+		return `kura-${hash}`;
+	},
 	output: "standalone",
 	typedRoutes: true,
 	reactCompiler: true,
