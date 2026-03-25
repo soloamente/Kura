@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 
+import { env } from "@Kura/env/web";
+
 import "../index.css";
 import Providers from "@/components/providers";
 
@@ -15,6 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+	// Resolves absolute URLs for `opengraph-image` and other metadata in production.
+	metadataBase: new URL(env.NEXT_PUBLIC_WEB_APP_URL.replace(/\/$/, "")),
 	title: "Cura",
 	description: "Kura",
 };
