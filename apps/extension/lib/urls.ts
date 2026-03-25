@@ -22,4 +22,4 @@ export const DEFAULT_API_ORIGIN: string =
 /** Next.js app origin for login / settings links (no trailing slash). */
 export const DEFAULT_WEB_ORIGIN: string =
 	configuredWeb ??
-	(import.meta.env.DEV ? "http://localhost:3001" : "https://app.kura.so");
+	(import.meta.env.DEV ? "http://localhost:3001" : "https://cura.page");

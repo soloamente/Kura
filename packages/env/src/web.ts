@@ -8,9 +8,9 @@ export const env = createEnv({
 		NEXT_PUBLIC_PROFILE_DOMAIN: z.string().min(1).default("cura.page"),
 		/**
 		 * Origin of the main Next app (dashboard, explore, settings) — not `*.cura.page` profiles.
-		 * Used for links from profile subdomains (e.g. “Back to dashboard”).
+		 * Default matches production on the **`cura.page`** apex; override in `.env` for previews or custom domains.
 		 */
-		NEXT_PUBLIC_WEB_APP_URL: z.string().url().default("https://app.kura.so"),
+		NEXT_PUBLIC_WEB_APP_URL: z.string().url().default("https://cura.page"),
 	},
 	runtimeEnv: {
 		NEXT_PUBLIC_SERVER_URL: process.env.NEXT_PUBLIC_SERVER_URL,
