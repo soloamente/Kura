@@ -6,6 +6,7 @@
 - Add first-class visibility controls for bookmarks (private / friends / public), surfaced directly in the bookmark context menu so users can quickly change who can see a specific bookmark without opening a separate settings modal.
 - Add an admin control surface with persistent user roles/status, a protected `/admin` entry point, searchable user management, moderation actions, and eventually a fully dynamic achievement builder.
 - **Mutual friendship system**: Users add friends only when both sides agree (friend request → accept/deny). Once friends, the existing "friends" visibility on bookmarks/collections applies to them, and users can share a bookmark or collection directly to a friend via a modal (e.g. "Share to…" → pick friend → friend sees it in a "Shared with you" surface or notification).
+- **Public profile URLs on `cura.page`**: Public user profile pages should be served at **`https://<username>.cura.page`** (wildcard DNS on the owned **`cura.page`** domain), not as a single-segment path on the main app host (e.g. `https://app.kura.so/<username>`). The product name remains Kura; **`cura.page`** is the dedicated public-profile domain.
 
 ## Key Challenges and Analysis
 
@@ -23,6 +24,12 @@
 - **"Friends" visibility enforcement**: Currently all server reads filter only by `public`; `friends` is stored but not enforced. Add a helper (e.g. `areFriends(userIdA, userIdB)`) and use it in profile bookmarks/collections and any endpoint returning another user's content so that visibility `friends` is returned only when the requester is a friend of the owner.
 - **Share-to-friend**: "Share to friend" = user picks bookmark or collection, opens a modal, selects a friend; the friend sees the item in a "Shared with you" list. Store **share** records (senderId, recipientId, bookmarkId or collectionId, createdAt) and expose GET "shared with me" plus optional notification/badge.
 - **Idempotency**: Send friend request idempotent (already pending → success); accept/deny once-only. Prevent self-friend and duplicate friendships.
+
+- **Subdomain vs path routing**: The app already implements profiles at `apps/web/src/app/[username]/page.tsx` (path `/<username>`). Moving the *canonical* public URL to `<username>.cura.page` requires **host-based rewrites** in Next.js middleware so the same route tree serves both the dashboard origin and profile subdomains without duplicating pages. The main app (dashboard, explore, settings) stays on its existing host; only public profile *links* and canonical URLs change to the new domain.
+- **Reserved subdomains**: Names like `www`, `app`, `api`, `staging`, `admin`, and infrastructure hosts must not be treated as usernames. Collisions with Next.js top-level routes (`/dashboard`, `/explore`, …) are already avoided by static segments; on subdomains the **first label** must be validated against a reserved list and username format (match existing username rules from signup).
+- **DNS and TLS**: **`cura.page`** and **`*.cura.page`** must point to the same Vercel (or other) deployment as `apps/web`, with a wildcard certificate. This is an infra step outside the repo but blocks production.
+- **Auth cookies**: Session cookies scoped to `app.kura.so` (or the API host) are **not** sent to `alice.cura.page` unless cookie domain and Better Auth are explicitly configured for **`.cura.page`**. For a first slice, **public profile browsing** can remain as today (client-side session to API with `credentials: "include"` only when the SPA runs on an origin that matches cookie policy). If “logged-in experience on the profile subdomain” must feel seamless, plan a follow-up for shared parent domain and CORS — not required to ship canonical URLs and rewrites.
+- **Redirects and SEO**: Existing `/username` links on the old host may need **301 redirects** to `https://username.cura.page` to preserve sharing and search equity; this must not redirect reserved app paths. Prefer implementing redirects after rewrites are stable.
 
 ## High-level Task Breakdown
 
@@ -82,8 +89,51 @@
   - [ ] Add a way to view "Shared with me" (e.g. a section on dashboard, or a tab, or a dedicated page). Call `GET /users/me/shared-with-me` and render list of shared bookmarks/collections with sender info and link to open.
   - **Success criteria**: Recipient can see who shared what and open the bookmark or collection.
 
+### Public profile URLs: `username.cura.page` (Planner)
+
+**Goal**: Canonical public profile URLs are **`https://<username>.cura.page`**, using the purchased **`cura.page`** domain with wildcard subdomains. Reuse the existing **`app/[username]/`** implementation via middleware rewrites; keep the dashboard app on its current host.
+
+**Out of scope for first slice** (optional follow-ups): Apex `cura.page` marketing landing; Better Auth cookie domain unification across `*.cura.page` and the app host; automatic 301 from every old path URL (can be a separate task once routing is verified).
+
+#### Task P1 — DNS / Vercel (manual)
+
+- Add **`cura.page`** and **wildcard `*.cura.page`** to the Vercel project that deploys `apps/web`; configure DNS at the registrar per Vercel instructions (A/ALIAS + wildcard CNAME as required).
+- **Success criteria**: TLS works for `https://<test>.cura.page` (even a placeholder response) before relying on app logic.
+
+#### Task P2 — Next.js middleware (rewrite)
+
+- Add **`apps/web/middleware.ts`**: inspect `Host`, extract subdomain for hosts ending in **`cura.page`** (and a dev-friendly pattern, e.g. **`<user>.localhost`** if supported).
+- If subdomain is present and **not** in a **reserved list** (`www`, `app`, `api`, `staging`, `admin`, `dashboard`, `_vercel`, etc.) and matches **username validation** rules, **rewrite** the request path to **`/<subdomain>`** so `app/[username]/page.tsx` serves the profile. For `/favicon.ico` and Next internals, pass through without treating as username.
+- **Success criteria**: `https://alice.cura.page/` serves the same profile as today’s internal `/<alice>` route; reserved names do not map to profiles.
+
+#### Task P3 — Environment + URL helper
+
+- Add **`NEXT_PUBLIC_PROFILE_DOMAIN`** (e.g. `cura.page`) to validated web env; implement **`getPublicProfileUrl(username)`** returning **`https://<username>.cura.page`** (no trailing slash unless product standard says otherwise).
+- **Success criteria**: One helper used for “copy profile link,” Explore, and any in-app navigation to a public profile.
+
+#### Task P4 — Replace internal profile links and copy
+
+- Update known call sites: **`explore-view.tsx`**, **`header.tsx`** (navigate to collection owner profile), **`settings-modal.tsx`** (hint currently references `kura.app/...` — align to **`username.cura.page`**), **`AGENTS.md`** / extension docs if they document profile URL shape.
+- **Success criteria**: User-visible links to someone’s public profile use **`getPublicProfileUrl`**; no stray `/${username}` on the main app host for that purpose (unless a deliberate transitional exception is documented).
+
+#### Task P5 — Metadata / canonical
+
+- Ensure profile **`metadata`** (and Open Graph / canonical where applicable) uses the **profile subdomain URL** when generating absolute URLs, so shared links preview correctly.
+- **Success criteria**: Inspecting head tags on `alice.cura.page` shows canonical pointing at the subdomain.
+
+#### Task P6 — Optional: 301 from old path URLs
+
+- After P2–P4 are verified, add **redirect rules** (middleware or `next.config`) so **`GET /<segment>`** on the **main app host only** redirects to **`https://<segment>.cura.page`** when `<segment>` is a valid public username and not a static route. Requires care to avoid redirecting `/dashboard`, `/explore`, etc.
+- **Success criteria**: Old bookmarks to `https://app.../alice` 301 to `https://alice.cura.page`.
+
+#### Task P7 — Testing
+
+- Local smoke: subdomain simulation via **`<user>.localhost`** or documented dev host; confirm profile loads and client API calls still target **`NEXT_PUBLIC_SERVER_URL`**.
+- **Success criteria**: Checklist passed for load profile, follow/unfollow (authenticated), and no console CORS regressions beyond known cross-origin auth constraints.
+
 ## Project Status Board
 
+- [ ] **Public profiles on `username.cura.page`**: DNS/Vercel wildcard; Next middleware rewrite to `app/[username]`; `NEXT_PUBLIC_PROFILE_DOMAIN` + `getPublicProfileUrl`; update internal links and settings copy; metadata/canonical; optional 301 from old `/username` on app host; manual verification.
 - [ ] Implement Trash bookmarks view (list trashed items, restore, delete).
 - [ ] Apply Emil UI polish to `BookmarkList` interactions (reduced motion, hover/touch, dialog a11y).
 - [ ] Apply Emil UI polish to the dashboard header (`Header`) including collection chips and Inbox/Trash nav.
@@ -416,6 +466,8 @@ Colors are expressed as OKLCH hues and rendered as CSS variables so they adapt t
 
 - Implemented a first "Shared with you" surface so friends can actually see items that were shared with them: the Friends section in Settings now also fetches `GET /users/me/shared-with-me` and renders a list of shared bookmarks/collections (showing what was shared, who shared it, and an Open button for bookmarks). This confirms that share-to-friend is wired correctly end-to-end, even though shared items are not yet integrated directly into the main Inbox list.
 
+- **Vercel / Bun (`ResolveMessage {}`, exit 1)**: Gated `@ai-sdk/devtools` behind a development-only dynamic import in `apps/server/src/index.ts` so production serverless cold starts do not load DevTools (not intended for prod; may contribute to resolution/runtime failures). Please redeploy and confirm function logs are clean; if errors remain, investigate Trigger SDK import path and monorepo install root.
+
 ## Lessons
 
 - Remember to align new motion with existing motion/react usage and respect `prefers-reduced-motion` when adding animations.
@@ -429,3 +481,9 @@ Colors are expressed as OKLCH hues and rendered as CSS variables so they adapt t
 
 - When adding or refactoring routes in `usersRouter`, watch for accidental duplicate definitions of the same path (like `/users/me/friends`) later in the chain, since the last definition silently wins and can change the response shape in ways that break existing web code.
 
+- On Vercel or other serverless hosts, avoid top-level imports of `@ai-sdk/devtools`; load it only in development (e.g. dynamic `import()` inside the route) so production bundles and cold starts stay free of dev-only resolution or side effects.
+</think>
+
+
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+Read

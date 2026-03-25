@@ -1,14 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import type { PopupAppearance } from "../../lib/popup-appearance";
+import { usePopupAppearance } from "../../lib/use-popup-appearance";
+import { DEFAULT_API_ORIGIN, DEFAULT_WEB_ORIGIN } from "../../lib/urls";
+import { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import "./style.css";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const API_BASE = "http://localhost:3000"; // prod default
-
 async function getApiBase(): Promise<string> {
 	const result = await browser.storage.local.get("kura_api_base");
-	return (result.kura_api_base as string) || API_BASE;
+	return (result.kura_api_base as string) || DEFAULT_API_ORIGIN;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -79,7 +78,7 @@ function LoginWall() {
 				type="button"
 				className="btn-primary"
 				onClick={() =>
-					browser.tabs.create({ url: "https://app.kura.so/login" })
+					browser.tabs.create({ url: `${DEFAULT_WEB_ORIGIN}/login` })
 				}
 			>
 				Open Kura to sign in
@@ -157,7 +156,7 @@ function StatusIcon({ status }: { status: SaveStatus }) {
 
 // ─── Main popup ───────────────────────────────────────────────────────────────
 
-function Popup() {
+function Popup({ appearance }: { appearance: PopupAppearance }) {
 	const [user, setUser] = useState<User | null | "loading">("loading");
 	const [tab, setTab] = useState<{ url: string; title: string } | null>(null);
 	const [collections, setCollections] = useState<Collection[]>([]);
@@ -283,23 +282,46 @@ function Popup() {
 			{/* ── Header ── */}
 			<div className="header">
 				<span className="logo-sm">Kura</span>
-				<button
-					type="button"
-					className="header-btn"
-					title="Open Kura"
-					onClick={() => browser.tabs.create({ url: "https://app.kura.so" })}
-				>
-					<svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-						<path
-							d="M2 2h4v1H3v7h7V8h1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm5 0h4v4h-1V3.707L6.854 6.854l-.708-.708L9.293 3H7V2z"
-							fill="currentColor"
-						/>
-					</svg>
-				</button>
+				<div className="header-actions">
+					<button
+						type="button"
+						className="header-btn"
+						title="Open Kura"
+						aria-label="Open Kura"
+						onClick={() => browser.tabs.create({ url: DEFAULT_WEB_ORIGIN })}
+					>
+						<svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+							<path
+								d="M2 2h4v1H3v7h7V8h1v2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm5 0h4v4h-1V3.707L6.854 6.854l-.708-.708L9.293 3H7V2z"
+								fill="currentColor"
+							/>
+						</svg>
+					</button>
+					<button
+						type="button"
+						className="header-btn"
+						title="Extension appearance"
+						aria-label="Extension appearance"
+						onClick={() =>
+							browser.tabs.create({
+								url: browser.runtime.getURL("/appearance.html"),
+							})
+						}
+					>
+						<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+							<path
+								fill="currentColor"
+								fillRule="evenodd"
+								d="M8.006 1.5a.75.75 0 0 1 .744.648l.092.852a5.25 5.25 0 0 1 1.45.598l.78-.45a.75.75 0 0 1 1.03.275l.75 1.299a.75.75 0 0 1-.275 1.03l-.78.45c.14.47.22.97.22 1.5s-.08 1.03-.22 1.5l.78.45a.75.75 0 0 1 .275 1.03l-.75 1.299a.75.75 0 0 1-1.03.275l-.78-.45a5.25 5.25 0 0 1-1.45.598l-.092.852a.75.75 0 0 1-.744.648H6.994a.75.75 0 0 1-.744-.648l-.092-.852a5.25 5.25 0 0 1-1.45-.598l-.78.45a.75.75 0 0 1-1.03-.275l-.75-1.299a.75.75 0 0 1 .275-1.03l.78-.45a5.25 5.25 0 0 1-.22-1.5c0-.53.08-1.03.22-1.5l-.78-.45a.75.75 0 0 1-.275-1.03l.75-1.299a.75.75 0 0 1 1.03-.275l.78.45a5.25 5.25 0 0 1 1.45-.598l.092-.852A.75.75 0 0 1 6.994 1.5h1.012ZM7.5 6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"
+								clipRule="evenodd"
+							/>
+						</svg>
+					</button>
+				</div>
 			</div>
 
 			{/* ── Current page ── */}
-			{tab && (
+			{appearance.showCurrentPage && tab && (
 				<div className="current-page">
 					<div className="page-info">
 						<Favicon url={tab.url} size={14} />
@@ -312,7 +334,7 @@ function Popup() {
 			)}
 
 			{/* ── Collection picker ── */}
-			{collections.length > 0 && (
+			{appearance.showCollectionPicker && collections.length > 0 && (
 				<div className="collection-picker">
 					<button
 						type="button"
@@ -376,57 +398,51 @@ function Popup() {
 			)}
 
 			{/* ── Recent bookmarks ── */}
-			<div className="recent-section">
-				<p className="recent-label">Recent</p>
-				{loadingRecent ? (
-					<div className="recent-list">
-						{[0.9, 0.7, 0.8, 0.6].map((o, i) => (
-							<div key={i} className="skeleton-row" style={{ opacity: o }}>
-								<div
-									className="skeleton"
-									style={{ width: 14, height: 14, borderRadius: 3 }}
-								/>
-								<div className="skeleton" style={{ flex: 1, height: 12 }} />
-							</div>
-						))}
-					</div>
-				) : recent.length === 0 ? (
-					<p className="recent-empty">No bookmarks yet</p>
-				) : (
-					<div className="recent-list">
-						{recent.map((b) => (
-							<button
-								key={b.id}
-								type="button"
-								className="recent-item"
-								onClick={() => browser.tabs.create({ url: b.url })}
-								title={b.url}
-							>
-								<Favicon url={b.url} size={13} />
-								<span className="recent-title">{b.title ?? b.url}</span>
-							</button>
-						))}
-					</div>
-				)}
-			</div>
-
-			{/* ── Footer ── */}
-			<div className="footer">
-				<span className="footer-user">{(user as User).name}</span>
-				<button
-					type="button"
-					className="footer-link"
-					onClick={() =>
-						browser.tabs.create({ url: "https://app.kura.so/settings" })
-					}
-				>
-					Settings
-				</button>
-			</div>
+			{appearance.showRecent && (
+				<div className="recent-section">
+					<p className="recent-label">Recent</p>
+					{loadingRecent ? (
+						<div className="recent-list">
+							{[0.9, 0.7, 0.8, 0.6].map((o, i) => (
+								<div key={i} className="skeleton-row" style={{ opacity: o }}>
+									<div
+										className="skeleton"
+										style={{ width: 14, height: 14, borderRadius: 3 }}
+									/>
+									<div className="skeleton" style={{ flex: 1, height: 12 }} />
+								</div>
+							))}
+						</div>
+					) : recent.length === 0 ? (
+						<p className="recent-empty">No bookmarks yet</p>
+					) : (
+						<div className="recent-list">
+							{recent.map((b) => (
+								<button
+									key={b.id}
+									type="button"
+									className="recent-item"
+									onClick={() => browser.tabs.create({ url: b.url })}
+									title={b.url}
+								>
+									<Favicon url={b.url} size={13} />
+									<span className="recent-title">{b.title ?? b.url}</span>
+								</button>
+							))}
+						</div>
+					)}
+				</div>
+			)}
 		</div>
 	);
 }
 
 // ─── Mount ────────────────────────────────────────────────────────────────────
 
-ReactDOM.createRoot(document.getElementById("root")!).render(<Popup />);
+/** Loads appearance from sync storage and keeps `<html data-*>` in sync with the options page. */
+function App() {
+	const appearance = usePopupAppearance();
+	return <Popup appearance={appearance} />;
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(<App />);

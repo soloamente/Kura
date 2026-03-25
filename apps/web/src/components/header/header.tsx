@@ -19,6 +19,7 @@ import { useCollection } from "@/context/collection-context";
 import { usePasteBookmark } from "@/hooks/use-paste-bookmark";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
+import { getPublicProfileUrl } from "@/lib/public-profile-url";
 import type { CollectionChipAnimationConfig } from "./collection-chip";
 import { CollectionChip } from "./collection-chip";
 
@@ -651,8 +652,10 @@ const Header = forwardRef<HTMLElement, HeaderProps>(function Header(
 											owner={coll.owner}
 											onViewCreator={() => {
 												if (!coll.owner?.username) return;
-												// Navigate to the creator's public profile page
-												window.location.assign(`/${coll.owner.username}`);
+												// Open the creator's public profile on the profile domain
+												window.location.assign(
+													getPublicProfileUrl(coll.owner.username),
+												);
 											}}
 											onUnfollowFollowed={async () => {
 												const prevFollowedIds = new Set(followedCollectionIds);

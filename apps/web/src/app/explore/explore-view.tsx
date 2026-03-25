@@ -10,7 +10,6 @@ import { useToast } from "@Kura/ui/components/toast";
 import { cn } from "@Kura/ui/lib/utils";
 import { motion } from "motion/react";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { TextMorph } from "torph/react";
 import { api } from "@/lib/api";
@@ -18,6 +17,7 @@ import {
 	contextMenuItemCls,
 	contextMenuPopupCls,
 } from "@/lib/context-menu-styles";
+import { getPublicProfileUrl } from "@/lib/public-profile-url";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -393,8 +393,13 @@ export function ExploreView({
 												"[@media(hover:hover)]:hover:bg-muted/50",
 											)}
 										>
-											<Link
-												href={p.username ? `/${p.username}` : "#"}
+											{/* Public profiles live on the profile domain (`*.cura.page`), not an in-app route — use <a> (typed `Link` is for internal routes only). */}
+											<a
+												href={
+													p.username
+														? getPublicProfileUrl(p.username)
+														: "#"
+												}
 												className="flex min-w-0 flex-1 items-center gap-3 rounded-full no-underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 											>
 												<div className="relative size-12 shrink-0 overflow-hidden rounded-full bg-muted">
@@ -424,7 +429,7 @@ export function ExploreView({
 													{p.followerCount} follower
 													{p.followerCount !== 1 ? "s" : ""}
 												</span>
-											</Link>
+											</a>
 											{p.username && (
 												<button
 													type="button"

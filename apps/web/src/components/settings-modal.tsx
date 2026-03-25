@@ -17,6 +17,7 @@ import {
 	useTheme,
 } from "@/components/theme-provider";
 import { useCollection } from "@/context/collection-context";
+import { env } from "@Kura/env/web";
 import { api } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 
@@ -463,7 +464,10 @@ function ProfileSection({
 			</Field>
 
 			{/* Username */}
-			<Field label="Username" hint={`kura.app/${username || "…"}`}>
+			<Field
+				label="Username"
+				hint={`${username || "…"}.${env.NEXT_PUBLIC_PROFILE_DOMAIN}`}
+			>
 				<div className="relative">
 					<span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground text-sm">
 						@

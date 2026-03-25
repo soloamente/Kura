@@ -1,0 +1,112 @@
+/**
+ * Design tokens + appearance presets (theme / radius / density).
+ * Driven by `data-theme`, `data-radius`, `data-density` on `<html>` (see `lib/popup-appearance.ts`).
+ */
+
+/* ─── Light palette (default when OS is light) ─── */
+:root {
+	--bg: #fafafa;
+	--bg-muted: #f4f4f5;
+	--bg-hover: #e4e4e7;
+	--fg: #18181b;
+	--fg-muted: #52525b;
+	--fg-faint: #71717a;
+	--border: #e4e4e7;
+	--primary: #18181b;
+	--primary-fg: #fafafa;
+	--primary-hover: #27272a;
+	--duplicate-bg: #fef3c7;
+	--duplicate-fg: #92400e;
+	/* Minimal corners by default (overridden by [data-radius]) */
+	--radius: 4px;
+	--radius-sm: 3px;
+	--radius-full: 9999px;
+	--pad-header-y: 10px;
+	--pad-header-x: 12px;
+	--pad-section-x: 12px;
+	--pad-section-y: 10px;
+	--gap-collection: 5px;
+}
+
+/* OS dark when no explicit data-theme */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) {
+		--bg: #18181b;
+		--bg-muted: #27272a;
+		--bg-hover: #3f3f46;
+		--fg: #fafafa;
+		--fg-muted: #a1a1aa;
+		--fg-faint: #71717a;
+		--border: rgba(255, 255, 255, 0.1);
+		--primary: #e4e4e7;
+		--primary-fg: #18181b;
+		--primary-hover: #d4d4d8;
+		--duplicate-bg: #451a03;
+		--duplicate-fg: #fcd34d;
+	}
+}
+
+/* Force light */
+:root[data-theme="light"] {
+	--bg: #fafafa;
+	--bg-muted: #f4f4f5;
+	--bg-hover: #e4e4e7;
+	--fg: #18181b;
+	--fg-muted: #52525b;
+	--fg-faint: #71717a;
+	--border: #e4e4e7;
+	--primary: #18181b;
+	--primary-fg: #fafafa;
+	--primary-hover: #27272a;
+	--duplicate-bg: #fef3c7;
+	--duplicate-fg: #92400e;
+}
+
+/* Force dark */
+:root[data-theme="dark"] {
+	--bg: #18181b;
+	--bg-muted: #27272a;
+	--bg-hover: #3f3f46;
+	--fg: #fafafa;
+	--fg-muted: #a1a1aa;
+	--fg-faint: #71717a;
+	--border: rgba(255, 255, 255, 0.1);
+	--primary: #e4e4e7;
+	--primary-fg: #18181b;
+	--primary-hover: #d4d4d8;
+	--duplicate-bg: #451a03;
+	--duplicate-fg: #fcd34d;
+}
+
+/* Corner scale */
+:root[data-radius="minimal"] {
+	--radius: 4px;
+	--radius-sm: 3px;
+}
+
+:root[data-radius="soft"] {
+	--radius: 8px;
+	--radius-sm: 6px;
+}
+
+:root[data-radius="rounded"] {
+	--radius: 12px;
+	--radius-sm: 9px;
+}
+
+/* Density */
+:root[data-density="comfortable"] {
+	--pad-header-y: 10px;
+	--pad-header-x: 12px;
+	--pad-section-x: 12px;
+	--pad-section-y: 10px;
+	--gap-collection: 5px;
+}
+
+:root[data-density="compact"] {
+	--pad-header-y: 7px;
+	--pad-header-x: 10px;
+	--pad-section-x: 10px;
+	--pad-section-y: 7px;
+	--gap-collection: 4px;
+}

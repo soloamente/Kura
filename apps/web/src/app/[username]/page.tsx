@@ -1,8 +1,19 @@
+import { env } from "@Kura/env/web";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProfileView } from "@/app/[username]/profile-view";
 
 interface Props {
 	params: Promise<{ username: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+	const { username } = await params;
+	const canonical = `https://${username}.${env.NEXT_PUBLIC_PROFILE_DOMAIN}`;
+	return {
+		alternates: { canonical },
+		openGraph: { url: canonical },
+	};
 }
 
 export default async function ProfilePage({ params }: Props) {

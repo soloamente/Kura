@@ -1,10 +1,10 @@
+import { DEFAULT_API_ORIGIN } from "../lib/urls";
 import { defineBackground } from "wxt/utils/define-background";
 
-const API = "https://app.kura.so"; // swap for localhost in dev
-// Allow overriding via storage for dev builds
+// Allow overriding via storage (e.g. testing against a staging API).
 async function getApiBase(): Promise<string> {
 	const result = await browser.storage.local.get("kura_api_base");
-	return (result.kura_api_base as string) || API;
+	return (result.kura_api_base as string) || DEFAULT_API_ORIGIN;
 }
 
 async function saveUrl(

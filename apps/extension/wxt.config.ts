@@ -20,5 +20,8 @@ export default defineConfig({
 			default_title: "Save to Kura",
 			default_popup: "popup.html",
 		},
+		// Note: we open `options.html` via `tabs.create` + `runtime.getURL` from the popup. WXT’s
+		// manifest merge drops `options_ui.open_in_tab`, which makes `runtime.openOptionsPage()`
+		// throw "Could not create an options page" in Chrome MV3 when embedded options fail.
 	},
 });
