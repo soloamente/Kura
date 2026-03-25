@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
-/** OG / social preview: white canvas with centered Cura wordmark (matches `public/favicon/Cura.svg`). */
+/** OG / social preview: white canvas with centered letterpress artwork (`public/shared_letterpress.png`). */
 export const alt = "Cura";
 
 export const size = {
@@ -13,18 +13,36 @@ export const size = {
 
 export const contentType = "image/png";
 
-/** Node runtime so we can read the SVG from `public/` at build/request time. */
+/** Node runtime so we can read the PNG from `public/` at build/request time. */
 export const runtime = "nodejs";
 
-export default async function OpenGraphImage() {
-	const svgPath = join(process.cwd(), "public", "favicon", "Cura.svg");
-	const svg = await readFile(svgPath, "utf8");
-	// Satori (via `next/og`) renders `<img>`; embed the asset as a data URL.
-	const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+/** Read width/height from the PNG IHDR chunk (no extra deps). */
+function getPngDimensions(buffer: Buffer): { width: number; height: number } {
+	if (buffer.length < 24) {
+		throw new Error("PNG too small");
+	}
+	// First chunk after signature should be IHDR at byte offset 12.
+	if (buffer.toString("ascii", 12, 16) !== "IHDR") {
+		throw new Error("Expected IHDR chunk");
+	}
+	return {
+		width: buffer.readUInt32BE(16),
+		height: buffer.readUInt32BE(20),
+	};
+}
 
-	// Logo viewBox is 411×139 — scale to a comfortable width on 1200×630.
-	const logoWidth = 720;
-	const logoHeight = Math.round((logoWidth * 139) / 411);
+export default async function OpenGraphImage() {
+	const pngPath = join(process.cwd(), "public", "shared_letterpress.png");
+	const buf = await readFile(pngPath);
+	const { width: iw, height: ih } = getPngDimensions(buf);
+
+	// Keep the artwork modest on the 1200×630 canvas (cap longest edge).
+	const maxEdgePx = 400;
+	const scale = Math.min(1, maxEdgePx / Math.max(iw, ih));
+	const imgWidth = Math.round(iw * scale);
+	const imgHeight = Math.round(ih * scale);
+
+	const dataUrl = `data:image/png;base64,${buf.toString("base64")}`;
 
 	return new ImageResponse(
 		(
@@ -38,12 +56,11 @@ export default async function OpenGraphImage() {
 					backgroundColor: "#ffffff",
 				}}
 			>
-				{/* Explicit dimensions required by the OG renderer */}
 				<img
 					src={dataUrl}
 					alt=""
-					width={logoWidth}
-					height={logoHeight}
+					width={imgWidth}
+					height={imgHeight}
 					style={{ objectFit: "contain" }}
 				/>
 			</div>
