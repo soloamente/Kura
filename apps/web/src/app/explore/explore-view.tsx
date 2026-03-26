@@ -188,6 +188,7 @@ export function ExploreView({
 							else {
 								update(loadingId, "Bookmark saved", "success");
 								window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
+								window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 							}
 						},
 					},
@@ -201,6 +202,7 @@ export function ExploreView({
 			}
 			update(id, "Bookmark saved", "success");
 			window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
+			window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 		},
 		[toast, update, dismiss],
 	);

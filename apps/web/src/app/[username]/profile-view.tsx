@@ -118,6 +118,7 @@ function SaveBookmarkDialog({
 			return;
 		}
 		toast("Bookmark saved", "success");
+		window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 		onClose();
 	};
 

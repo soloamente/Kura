@@ -63,6 +63,7 @@ export default function Dashboard() {
 			// immediately after saving a bookmark from the context menu.
 			window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
 			triggerBookmarkRefetch();
+			window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 		}
 	};
 

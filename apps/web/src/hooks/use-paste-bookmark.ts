@@ -24,8 +24,8 @@ export function usePasteBookmark(activeCollectionId: string | null) {
 			// successful bookmark save so new achievements celebrate immediately.
 			window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
 			triggerBookmarkRefetch();
-			setTimeout(() => triggerBookmarkRefetch(), 5000);
-			setTimeout(() => triggerBookmarkRefetch(), 12000);
+			// Same polling as Settings → Re-enrich so metadata appears after Trigger runs.
+			window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 		},
 		[dismiss, toast, update, triggerBookmarkRefetch],
 	);
@@ -85,10 +85,7 @@ export function usePasteBookmark(activeCollectionId: string | null) {
 			// badge watcher to diff the unlocked set immediately.
 			window.dispatchEvent(new CustomEvent("kura:refresh-badges"));
 			triggerBookmarkRefetch();
-
-			// refetch again after enrichment completes
-			setTimeout(() => triggerBookmarkRefetch(), 5000);
-			setTimeout(() => triggerBookmarkRefetch(), 12000);
+			window.dispatchEvent(new CustomEvent("kura:enrich-started"));
 		};
 
 		window.addEventListener("paste", handlePaste);

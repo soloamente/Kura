@@ -1328,6 +1328,8 @@ export function BookmarkList() {
 	const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
 	const [shareTarget, setShareTarget] = useState<ShareTarget | null>(null);
 	const isInitialLoad = useRef(true);
+	// Poll interval for post-save metadata enrichment (same as Settings → Re-enrich).
+	const enrichPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	// keep a stable ref so the effect doesn't need followedCollectionIds in its dep array
 	useEffect(() => {
 		const handler = (event: Event) => {
@@ -1502,27 +1504,34 @@ export function BookmarkList() {
 		});
 	}, []);
 
-	// When the user triggers "Re-enrich bookmarks" from Settings, start polling
-	// every 10 s for up to 2 minutes so enriched metadata shows up automatically.
+	// After a new bookmark or Settings → Re-enrich, poll so title/favicon/etc. appear
+	// when the server’s Trigger task finishes (usually within seconds).
 	useEffect(() => {
 		const handleEnrichStarted = () => {
-			// Immediate refetch to catch any already-completed tasks.
 			triggerBookmarkRefetch();
-
+			if (enrichPollRef.current) {
+				clearInterval(enrichPollRef.current);
+				enrichPollRef.current = null;
+			}
 			let ticks = 0;
-			const id = setInterval(() => {
+			enrichPollRef.current = setInterval(() => {
 				ticks++;
 				triggerBookmarkRefetch();
-				// Stop after ~2 minutes (12 × 10 s).
-				if (ticks >= 12) clearInterval(id);
+				if (ticks >= 12 && enrichPollRef.current) {
+					clearInterval(enrichPollRef.current);
+					enrichPollRef.current = null;
+				}
 			}, 10_000);
-
-			return () => clearInterval(id);
 		};
 
 		window.addEventListener("kura:enrich-started", handleEnrichStarted);
-		return () =>
+		return () => {
 			window.removeEventListener("kura:enrich-started", handleEnrichStarted);
+			if (enrichPollRef.current) {
+				clearInterval(enrichPollRef.current);
+				enrichPollRef.current = null;
+			}
+		};
 	}, [triggerBookmarkRefetch]);
 
 	// fetch tag catalog for the Tags submenu
