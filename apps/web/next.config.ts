@@ -13,7 +13,13 @@ const nextConfig: NextConfig = {
 		const upstream = process.env.KURA_API_UPSTREAM;
 		if (!upstream) return [];
 		const base = upstream.replace(/\/$/, "");
-		return [{ source: "/_kura/:path*", destination: `${base}/:path*` }];
+		// `/api/auth/*` must be rewritten explicitly: Better Auth clients use origin-only `baseURL`
+		// (`NEXT_PUBLIC_WEB_APP_URL`) so requests hit `/api/auth/...` on the web host (Safari / same-site cookies).
+		// `/_kura/*` remains for Eden treaty + manual fetches to the rest of the API.
+		return [
+			{ source: "/api/auth/:path*", destination: `${base}/api/auth/:path*` },
+			{ source: "/_kura/:path*", destination: `${base}/:path*` },
+		];
 	},
 	// Bust static chunk URLs when the API origin changes so CDN/browser caches cannot keep an
 	// old bundle that inlined a different `NEXT_PUBLIC_SERVER_URL` (e.g. localhost).

@@ -46,8 +46,8 @@ function handleSubdomainRewrite(
 
 	const { pathname } = request.nextUrl;
 
-	// API proxy prefix (see `next.config.ts` `/_kura` rewrites) — must not be prefixed with `/<username>/`.
-	if (pathname.startsWith("/_kura")) {
+	// Proxied API paths (see `next.config.ts`) — must not be prefixed with `/<username>/`.
+	if (pathname.startsWith("/_kura") || pathname.startsWith("/api/auth")) {
 		return null;
 	}
 
