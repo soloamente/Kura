@@ -9,17 +9,13 @@ const nextConfig: NextConfig = {
 	 * `NEXT_PUBLIC_SERVER_URL` to `https://<your-web-host>/_kura` and `BETTER_AUTH_URL` to the same.
 	 * Set `KURA_API_UPSTREAM` on the **web** project to the real API origin (e.g. `https://api…vercel.app`).
 	 *
-	 * `/api/auth/*` is **not** rewritten here: it is proxied by `app/api/auth/[[...path]]/route.ts`
-	 * so response headers stay consistent with `fetch()`’s decoded body (avoids
-	 * `ERR_CONTENT_DECODING_FAILED` when Next’s external rewrite forwarded `Content-Encoding: gzip`).
+	 * `/api/auth/*` is proxied by `app/api/auth/[[...path]]/route.ts` (not an external rewrite).
+	 * `/_kura/*` is rewritten **internally** to `/api/kura-proxy/*` so the same runtime proxy
+	 * runs (avoids external-rewrite gzip bugs and 404s when `KURA_API_UPSTREAM` was absent at build).
 	 */
-	rewrites: async () => {
-		const upstream = process.env.KURA_API_UPSTREAM;
-		if (!upstream) return [];
-		const base = upstream.replace(/\/$/, "");
-		// `/_kura/*` → Eden treaty + manual fetches to the rest of the API.
-		return [{ source: "/_kura/:path*", destination: `${base}/:path*` }];
-	},
+	rewrites: async () => [
+		{ source: "/_kura/:path*", destination: "/api/kura-proxy/:path*" },
+	],
 	// Bust static chunk URLs when the API origin changes so CDN/browser caches cannot keep an
 	// old bundle that inlined a different `NEXT_PUBLIC_SERVER_URL` (e.g. localhost).
 	generateBuildId: async () => {
