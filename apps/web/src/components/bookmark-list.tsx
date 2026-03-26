@@ -699,7 +699,15 @@ function BookmarkRow({
 							<Tooltip.Portal>
 								<Tooltip.Positioner side="right" sideOffset={12} align="start">
 									<Tooltip.Popup className="outline-none transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0">
-										<BookmarkPreviewContent bookmark={bookmark} />
+										{/* 
+										 * Tooltip implementations sometimes keep the popup content mounted
+										 * while open; force a remount when enrichment fields change so the
+										 * preview updates immediately after background enrichment.
+										 */}
+										<BookmarkPreviewContent
+											key={`${bookmark.id}:${bookmark.title ?? ""}:${bookmark.description ?? ""}:${bookmark.image ?? ""}:${bookmark.favicon ?? ""}`}
+											bookmark={bookmark}
+										/>
 									</Tooltip.Popup>
 								</Tooltip.Positioner>
 							</Tooltip.Portal>
