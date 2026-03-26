@@ -1312,6 +1312,7 @@ function SkeletonRows() {
 export function BookmarkList() {
 	const {
 		activeCollectionId,
+		bookmarkRefetchKey,
 		triggerBookmarkRefetch,
 		searchQuery,
 		followedCollectionIds,
@@ -1489,7 +1490,9 @@ export function BookmarkList() {
 		if (!isFollowed) return;
 		const intervalId = setInterval(() => fetchBookmarks(false), 5_000);
 		return () => clearInterval(intervalId);
-	}, [activeCollectionId]);
+		// bookmarkRefetchKey: paste-save, context menu save, trash sync, etc. bump this
+		// so we refetch without relying only on activeCollectionId.
+	}, [activeCollectionId, bookmarkRefetchKey]);
 
 	// fetch collections for the move submenu
 	useEffect(() => {
