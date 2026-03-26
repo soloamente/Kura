@@ -3,6 +3,18 @@ import crypto from "node:crypto";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	/**
+	 * Safari / ITP: session cookies on a different host than the web app are often blocked.
+	 * Proxy the API under `/_kura/*` on the **same origin** as the Next app, then set
+	 * `NEXT_PUBLIC_SERVER_URL` to `https://<your-web-host>/_kura` and `BETTER_AUTH_URL` to the same.
+	 * Set `KURA_API_UPSTREAM` on the **web** project to the real API origin (e.g. `https://api…vercel.app`).
+	 */
+	rewrites: async () => {
+		const upstream = process.env.KURA_API_UPSTREAM;
+		if (!upstream) return [];
+		const base = upstream.replace(/\/$/, "");
+		return [{ source: "/_kura/:path*", destination: `${base}/:path*` }];
+	},
 	// Bust static chunk URLs when the API origin changes so CDN/browser caches cannot keep an
 	// old bundle that inlined a different `NEXT_PUBLIC_SERVER_URL` (e.g. localhost).
 	generateBuildId: async () => {

@@ -1,4 +1,5 @@
 import { auth } from "@Kura/auth";
+import { isOriginAllowed, parseOriginList } from "@Kura/env/cors-origins";
 import { env } from "@Kura/env/server";
 import { google } from "@ai-sdk/google";
 import { cors } from "@elysiajs/cors";
@@ -12,10 +13,16 @@ import { tagsRouter } from "./tags";
 import { uploadRouter } from "./upload";
 import { usersRouter } from "./users";
 
+const corsOrigins = parseOriginList(env.CORS_ORIGIN);
+
 const app = new Elysia()
 	.use(
 		cors({
-			origin: env.CORS_ORIGIN,
+			origin: (request) => {
+				const origin = request.headers.get("origin");
+				if (!origin) return true;
+				return isOriginAllowed(origin, corsOrigins);
+			},
 			methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
 			allowedHeaders: ["Content-Type", "Authorization"],
 			credentials: true,

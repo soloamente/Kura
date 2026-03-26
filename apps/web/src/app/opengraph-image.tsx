@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
 
-/** OG / social preview: white canvas with centered letterpress artwork (`public/shared_letterpress.png`). */
+/** OG / social preview: white canvas with centered Cura wordmark (`public/favicon/Cura.svg`). */
 export const alt = "Cura";
 
 export const size = {
@@ -13,36 +13,17 @@ export const size = {
 
 export const contentType = "image/png";
 
-/** Node runtime so we can read the PNG from `public/` at build/request time. */
+/** Node runtime so we can read the SVG from `public/` at build/request time. */
 export const runtime = "nodejs";
 
-/** Read width/height from the PNG IHDR chunk (no extra deps). */
-function getPngDimensions(buffer: Buffer): { width: number; height: number } {
-	if (buffer.length < 24) {
-		throw new Error("PNG too small");
-	}
-	// First chunk after signature should be IHDR at byte offset 12.
-	if (buffer.toString("ascii", 12, 16) !== "IHDR") {
-		throw new Error("Expected IHDR chunk");
-	}
-	return {
-		width: buffer.readUInt32BE(16),
-		height: buffer.readUInt32BE(20),
-	};
-}
-
 export default async function OpenGraphImage() {
-	const pngPath = join(process.cwd(), "public", "shared_letterpress.png");
-	const buf = await readFile(pngPath);
-	const { width: iw, height: ih } = getPngDimensions(buf);
+	const svgPath = join(process.cwd(), "public", "favicon", "Cura.svg");
+	const svg = await readFile(svgPath, "utf8");
+	const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
 
-	// Keep the artwork modest on the 1200×630 canvas (cap longest edge).
-	const maxEdgePx = 400;
-	const scale = Math.min(1, maxEdgePx / Math.max(iw, ih));
-	const imgWidth = Math.round(iw * scale);
-	const imgHeight = Math.round(ih * scale);
-
-	const dataUrl = `data:image/png;base64,${buf.toString("base64")}`;
+	// Logo viewBox is 411×139 — keep the wordmark modest on the 1200×630 canvas.
+	const logoWidth = 400;
+	const logoHeight = Math.round((logoWidth * 139) / 411);
 
 	return new ImageResponse(
 		(
@@ -59,8 +40,8 @@ export default async function OpenGraphImage() {
 				<img
 					src={dataUrl}
 					alt=""
-					width={imgWidth}
-					height={imgHeight}
+					width={logoWidth}
+					height={logoHeight}
 					style={{ objectFit: "contain" }}
 				/>
 			</div>
