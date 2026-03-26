@@ -8,18 +8,17 @@ const nextConfig: NextConfig = {
 	 * Proxy the API under `/_kura/*` on the **same origin** as the Next app, then set
 	 * `NEXT_PUBLIC_SERVER_URL` to `https://<your-web-host>/_kura` and `BETTER_AUTH_URL` to the same.
 	 * Set `KURA_API_UPSTREAM` on the **web** project to the real API origin (e.g. `https://api…vercel.app`).
+	 *
+	 * `/api/auth/*` is **not** rewritten here: it is proxied by `app/api/auth/[[...path]]/route.ts`
+	 * so response headers stay consistent with `fetch()`’s decoded body (avoids
+	 * `ERR_CONTENT_DECODING_FAILED` when Next’s external rewrite forwarded `Content-Encoding: gzip`).
 	 */
 	rewrites: async () => {
 		const upstream = process.env.KURA_API_UPSTREAM;
 		if (!upstream) return [];
 		const base = upstream.replace(/\/$/, "");
-		// `/api/auth/*` must be rewritten explicitly: Better Auth clients use origin-only `baseURL`
-		// (`NEXT_PUBLIC_WEB_APP_URL`) so requests hit `/api/auth/...` on the web host (Safari / same-site cookies).
-		// `/_kura/*` remains for Eden treaty + manual fetches to the rest of the API.
-		return [
-			{ source: "/api/auth/:path*", destination: `${base}/api/auth/:path*` },
-			{ source: "/_kura/:path*", destination: `${base}/:path*` },
-		];
+		// `/_kura/*` → Eden treaty + manual fetches to the rest of the API.
+		return [{ source: "/_kura/:path*", destination: `${base}/:path*` }];
 	},
 	// Bust static chunk URLs when the API origin changes so CDN/browser caches cannot keep an
 	// old bundle that inlined a different `NEXT_PUBLIC_SERVER_URL` (e.g. localhost).

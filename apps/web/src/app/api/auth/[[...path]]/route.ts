@@ -59,6 +59,9 @@ async function proxyAuth(
 	});
 	headers.set("x-forwarded-host", request.headers.get("host") ?? "");
 	headers.set("x-forwarded-proto", src.protocol.replace(":", ""));
+	// Ask upstream for uncompressed bodies so Undici’s transparent gzip decode cannot
+	// disagree with headers we forward (see response header stripping below).
+	headers.set("accept-encoding", "identity");
 
 	const init: RequestInit = {
 		method: request.method,
@@ -72,10 +75,20 @@ async function proxyAuth(
 
 	const upstream = await fetch(targetUrl, init);
 
+	// Node/Undici `fetch` decompresses gzip/deflate bodies but may still expose
+	// `Content-Encoding` / `Content-Length` from the wire. Forwarding those with an
+	// already-decoded stream makes the browser try to gunzip plain JSON →
+	// `net::ERR_CONTENT_DECODING_FAILED` on `/api/auth/get-session` and similar.
 	const out = new Headers();
 	upstream.headers.forEach((value, key) => {
 		const lower = key.toLowerCase();
-		if (lower === "transfer-encoding") return;
+		if (
+			lower === "transfer-encoding" ||
+			lower === "content-encoding" ||
+			lower === "content-length"
+		) {
+			return;
+		}
 		out.append(key, value);
 	});
 
